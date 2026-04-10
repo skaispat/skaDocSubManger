@@ -16,8 +16,8 @@ const AllLoans = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const filteredData = loans.filter(item => {
-    const matchesSearch = item.bankName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    item.loanName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = item.bankName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.loanName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesBank = filterBank ? item.bankName === filterBank : true;
 
@@ -26,189 +26,157 @@ const AllLoans = () => {
 
   return (
     <>
-    <div className="space-y-3">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-3 rounded-xl shadow-input">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">All Loans</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage your outstanding loans</p>
-        </div>
-        <div className="flex w-full sm:w-auto gap-3">
-             <div className="relative flex-1 sm:flex-initial">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <input
-                    type="text"
-                    placeholder="Search loans..."
-                    className="pl-10 pr-4 py-2.5 w-full shadow-input border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+      <div className="space-y-3">
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white p-3 rounded-xl shadow-input">
+          <div className="min-h-[32px] flex items-center">
+            <h1 className="text-xl font-bold text-gray-800">All Loans</h1>
+          </div>
+          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
+            <div className="relative flex-1 sm:flex-initial">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <input
+                type="text"
+                placeholder="Search loans..."
+                className="pl-9 pr-4 py-2 w-full shadow-input border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            
+
             {/* Filter Dropdown */}
             <div className="relative">
-               <select
-                   value={filterBank}
-                   onChange={(e) => setFilterBank(e.target.value)}
-                   className="appearance-none pl-4 pr-10 py-2.5 shadow-input border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 text-gray-700 text-sm font-medium cursor-pointer hover:bg-gray-100 transition-colors w-full sm:w-auto"
-               >
-                   <option value="">All Banks</option>
-                   {Array.from(new Set(loans.map(l => l.bankName))).filter(Boolean).sort().map(bank => (
-                       <option key={bank} value={bank}>{bank}</option>
-                   ))}
-               </select>
-               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-               </div>
-            </div>
-
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg whitespace-nowrap"
-          >
-            <Plus className="h-5 w-5" />
-            <span className="hidden sm:inline">Add New</span>
-            <span className="sm:hidden">Add</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Desktop Table */}
-      <div className="hidden md:flex flex-col bg-white rounded-xl shadow-input overflow-hidden h-[calc(100vh-250px)]">
-        <div className="overflow-auto flex-1">
-            <table className="w-full text-left border-collapse">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-                <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
-                <th className="px-3 py-2">Serial No.</th>
-                <th className="px-3 py-2">Loan Name</th>
-                <th className="px-3 py-2">Bank Name</th>
-                <th className="px-3 py-2">Amount</th>
-                <th className="px-3 py-2">EMI</th>
-                <th className="px-3 py-2">Loan Start Date</th>
-                <th className="px-3 py-2">Loan End Date</th>
-                <th className="px-3 py-2">Provided Document Name</th>
-                <th className="px-3 py-2">File</th>
-                <th className="px-3 py-2">Remarks</th>
-                </tr>
-            </thead>
-            <tbody className="text-sm divide-y divide-gray-50">
-                {filteredData.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="px-3 py-2 font-medium text-gray-900">{item.sn}</td>
-                    <td className="px-3 py-2 font-medium text-gray-900">{item.loanName}</td>
-                    <td className="px-3 py-2 text-gray-600 flex items-center gap-2">
-                         <Building size={16} className="text-indigo-500" />
-                        {item.bankName}
-                    </td>
-                    <td className="px-3 py-2 text-gray-900 font-medium">{item.amount}</td>
-                    <td className="px-3 py-2 text-gray-600">{item.emi}</td>
-                    <td className="px-3 py-2 text-gray-600">{item.startDate}</td>
-                    <td className="px-3 py-2 text-gray-600">{item.endDate}</td>
-                    <td className="px-3 py-2 text-gray-600">{item.providedDocument}</td>
-                    <td className="px-3 py-2">
-                        {item.file ? (
-                            <a href={item.fileContent || '#'} download={item.file} className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800" title={item.file}>
-                                <FileText size={18} />
-                                <span className="text-xs truncate max-w-[100px] hidden xl:inline">{item.file}</span>
-                            </a>
-                        ) : (
-                            <span className="text-gray-400">-</span>
-                        )}
-                    </td>
-                    <td className="px-3 py-2 text-gray-500 italic">{item.remarks}</td>
-                </tr>
+              <select
+                value={filterBank}
+                onChange={(e) => setFilterBank(e.target.value)}
+                className="appearance-none pl-3 pr-8 py-2 shadow-input border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 text-gray-700 text-xs font-medium cursor-pointer hover:bg-gray-100 transition-colors w-full sm:w-auto"
+              >
+                <option value="">All Banks</option>
+                {Array.from(new Set(loans.map(l => l.bankName))).filter(Boolean).sort().map(bank => (
+                  <option key={bank} value={bank}>{bank}</option>
                 ))}
-            </tbody>
+              </select>
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-all shadow-md whitespace-nowrap text-sm"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add New</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:flex flex-col bg-white rounded-xl shadow-input overflow-hidden h-[calc(100vh-280px)]">
+          <div className="overflow-auto flex-1">
+            <table className="w-full text-left border-collapse">
+              <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
+                <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
+                  <th className="px-3 py-2 bg-gray-50">Serial No.</th>
+                  <th className="px-3 py-2 bg-gray-50">Loan Name</th>
+                  <th className="px-3 py-2 bg-gray-50">Bank Name</th>
+                  <th className="px-3 py-2 bg-gray-50">Amount</th>
+                  <th className="px-3 py-2 bg-gray-50">EMI</th>
+                  <th className="px-3 py-2 bg-gray-50">Start Date</th>
+                  <th className="px-3 py-2 bg-gray-50">End Date</th>
+                  <th className="px-3 py-2 bg-gray-50">Provided Document</th>
+                  <th className="px-3 py-2 bg-gray-50">File</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm divide-y divide-gray-50">
+                {filteredData.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
+                    <td className="px-3 py-1.5 font-medium text-gray-900">{item.sn}</td>
+                    <td className="px-3 py-1.5 font-medium text-gray-900">{item.loanName}</td>
+                    <td className="px-3 py-1.5 text-gray-600 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Building size={14} className="text-red-600" />
+                        {item.bankName}
+                      </div>
+                    </td>
+                    <td className="px-3 py-1.5 text-gray-900 font-medium">{item.amount}</td>
+                    <td className="px-3 py-1.5 text-gray-600">{item.emi}</td>
+                    <td className="px-3 py-1.5 text-gray-600 whitespace-nowrap">{item.startDate}</td>
+                    <td className="px-3 py-1.5 text-gray-600 whitespace-nowrap">{item.endDate}</td>
+                    <td className="px-3 py-1.5 text-gray-600 truncate max-w-[150px]">{item.providedDocument}</td>
+                    <td className="px-3 py-1.5">
+                      {item.file ? (
+                        <a href={item.fileContent || '#'} download={item.file} className="flex items-center gap-1 text-red-600 hover:text-red-800" title={item.file}>
+                          <FileText size={16} />
+                          <span className="text-xs">View</span>
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="md:hidden grid grid-cols-1 gap-3">
+          {filteredData.map((item) => (
+            <div key={item.id} className="bg-white p-4 rounded-xl shadow-input">
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-red-50 text-red-600 rounded-lg">
+                    <Building size={18} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-gray-900">{item.loanName}</h3>
+                    <p className="text-[10px] text-gray-500">{item.bankName} • {item.sn}</p>
+                  </div>
+                </div>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-700 border border-red-100">
+                  Active
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px]">
+                <div className="space-y-0.5">
+                  <p className="text-gray-500">Amount</p>
+                  <p className="font-semibold text-gray-900">{item.amount}</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-gray-500">EMI</p>
+                  <p className="font-semibold text-gray-900">{item.emi}</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-gray-500">Start Date</p>
+                  <p className="font-medium text-gray-900">{item.startDate}</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-gray-500">End Date</p>
+                  <p className="font-medium text-gray-900">{item.endDate}</p>
+                </div>
+              </div>
+
+              {item.file && (
+                <div className="mt-3 pt-2 border-t border-gray-50 flex justify-end">
+                  <a href={item.fileContent || '#'} download={item.file} className="flex items-center gap-1.5 text-red-600 text-xs font-semibold">
+                    <FileText size={14} />
+                    Download PDF
+                  </a>
+                </div>
+              )}
+            </div>
+          ))}
+          {filteredData.length === 0 && (
+            <div className="text-center p-8 text-gray-500 bg-white rounded-xl border border-dashed border-gray-200">
+              <p className="text-sm">No loans found</p>
+            </div>
+          )}
         </div>
       </div>
-
-       {/* Mobile Cards */}
-       <div className="md:hidden grid grid-cols-1 gap-4">
-        {filteredData.map((item) => (
-          <div key={item.id} className="bg-white p-5 rounded-xl shadow-input hover:shadow-md transition-shadow">
-             <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                 <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-                    <Building size={24} />
-                 </div>
-                 <div>
-                    <h3 className="font-bold text-gray-900">{item.loanName}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">{item.bankName} • {item.sn}</p>
-                 </div>
-              </div>
-              <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
-                    Active
-              </span>
-            </div>
-            
-            <div className="space-y-3">
-                 <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-500">
-                        <span>Serial No.</span>
-                    </div>
-                    <span className="font-medium text-gray-900">{item.sn}</span>
-                </div>
-                 <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-500">
-                        <DollarSign size={16} />
-                        <span>Amount</span>
-                    </div>
-                    <span className="font-medium text-gray-900">{item.amount}</span>
-                </div>
-                 <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-500">
-                        <Banknote size={16} />
-                        <span>EMI</span>
-                    </div>
-                    <span className="font-medium text-gray-900">{item.emi}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-500">
-                        <Calendar size={16} />
-                        <span>Loan Start Date</span>
-                    </div>
-                    <span className="font-medium text-gray-900">{item.startDate}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-500">
-                        <Calendar size={16} />
-                        <span>Loan End Date</span>
-                    </div>
-                    <span className="font-medium text-gray-900">{item.endDate}</span>
-                </div>
-                 <div className="pt-3 border-t border-gray-100 flex flex-col gap-2 text-xs text-gray-500">
-                    <div className="flex justify-between">
-                          <span className="font-medium">Provided Document Name:</span>
-                          <span>{item.providedDocument}</span>
-                    </div>
-                    {item.file && (
-                        <div className="flex justify-between items-center">
-                            <span className="font-medium">File:</span>
-                            <a href={item.fileContent || '#'} download={item.file} className="flex items-center gap-1 text-indigo-600">
-                                <FileText size={14} />
-                                <span>{item.file}</span>
-                            </a>
-                        </div>
-                    )}
-                     {item.remarks && (
-                        <div className="flex justify-between">
-                            <span className="font-medium">Remarks:</span>
-                            <span className="italic">{item.remarks}</span>
-                        </div>
-                     )}
-                 </div>
-            </div>
-          </div>
-        ))}
-         {filteredData.length === 0 && (
-            <div className="text-center p-8 text-gray-500 bg-white rounded-xl border border-dashed border-gray-200">
-                No loans found
-            </div>
-        )}
-      </div>
-    </div>
-    <AddLoan isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      <AddLoan isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
     </>
   );
 };

@@ -14,29 +14,29 @@ const ResourceManager = () => {
   }, [setTitle]);
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-4 pb-12">
       {/* Tabs Header */}
-      <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex gap-2">
+      <div className="bg-white p-1.5 rounded-xl shadow-sm border border-gray-100 flex gap-2">
         <button
           onClick={() => setActiveTab('documents')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${
             activeTab === 'documents'
-              ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100'
+              ? 'bg-red-50 text-red-700 shadow-sm border border-red-100'
               : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
           }`}
         >
-          <FileText size={18} />
+          <FileText size={16} />
           <span>Documents</span>
         </button>
         <button
           onClick={() => setActiveTab('subscriptions')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${
             activeTab === 'subscriptions'
-              ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100'
+              ? 'bg-red-50 text-red-700 shadow-sm border border-red-100'
               : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
           }`}
         >
-          <CreditCard size={18} />
+          <CreditCard size={16} />
           <span>Subscriptions</span>
         </button>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, Send, Share2 } from 'lucide-react';
 import useDataStore from '../../store/dataStore';
+import ConfirmModal from '../../components/ConfirmModal';
 
 interface ShareModalProps {
     isOpen: boolean;
@@ -16,6 +17,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
     const [whatsapp, setWhatsapp] = useState('');
     const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
     const { addShareHistory, shareHistory, documents } = useDataStore();
 
     useEffect(() => {
@@ -75,8 +78,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
              addShareHistory(newShare);
         }
 
-        alert(`Document shared via ${type} successfully!`);
-        onClose();
+        setSuccessMessage(`Document has been shared successfully via ${type === 'both' ? 'Email and WhatsApp' : type}.`);
+        setShowSuccess(true);
     };
 
     const isEmail = type === 'email' || type === 'both';
@@ -208,6 +211,18 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
                     </div>
                 </form>
             </div>
+
+            {/* Custom Success Modal */}
+            <ConfirmModal
+                isOpen={showSuccess}
+                onClose={() => {
+                    setShowSuccess(false);
+                    onClose();
+                }}
+                title="Share Result"
+                message={successMessage}
+                type="success"
+            />
         </div>
     );
 };

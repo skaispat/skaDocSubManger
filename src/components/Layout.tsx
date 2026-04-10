@@ -37,15 +37,15 @@ const Layout: React.FC = () => {
           </button>
         </Header>
         
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-2 sm:p-3">
           <div className="container mx-auto h-full flex flex-col">
             <Outlet />
           </div>
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-gray-200 py-3 px-4">
-          <div className="container mx-auto text-center text-sm text-gray-600">
+        <footer className="bg-white border-t border-gray-200 py-2 sm:py-3 px-4">
+          <div className="container mx-auto text-center text-xs sm:text-sm text-gray-600">
             Powered by{' '}
             <a 
               href="https://www.botivate.com" 

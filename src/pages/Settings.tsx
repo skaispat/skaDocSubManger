@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Bell, Shield, Plus, X, Check, Search } from 'lucide-react';
 import useAuthStore, { User as UserType } from '../store/authStore';
 import useHeaderStore from '../store/headerStore';
 import { toast } from 'react-hot-toast';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Settings = () => {
   const { setTitle } = useHeaderStore();
@@ -15,6 +16,10 @@ const Settings = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserType | null>(null);
 
+  // Confirm Modal state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+
   // Form State
   const [formData, setFormData] = useState<Partial<UserType>>({
     id: '',
@@ -25,15 +30,13 @@ const Settings = () => {
 
   const availablePermissions = ['Dashboard', 'Document', 'Subscription', 'Loan', 'Calendar', 'Master', 'Settings'];
 
-
-
   const openAddUserModal = () => {
     setEditingUser(null);
     setFormData({
         id: '',
         password: '',
         role: 'user',
-        permissions: ['Dashboard'] // Default permission
+        permissions: ['Dashboard']
     });
     setIsModalOpen(true);
   };
@@ -62,222 +65,187 @@ const Settings = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.id || !formData.password) {
         toast.error('Username and password are required');
         return;
     }
-
     if (editingUser) {
-        // Update existing user
         updateUser(editingUser.id, formData);
-        toast.success('User updated successfully');
+        toast.success('User updated');
     } else {
-        // Add new user
         const success = addUser(formData as UserType);
-        if (success) {
-            toast.success('User added successfully');
-        } else {
-            toast.error('User already exists');
-            return;
-        }
+        if (success) toast.success('User added');
+        else { toast.error('User exists'); return; }
     }
     setIsModalOpen(false);
   };
 
   const handleDeleteUser = (id: string) => {
-      if (confirm('Are you sure you want to delete this user?')) {
-          deleteUser(id);
-          toast.success('User deleted');
+      setUserToDelete(id);
+      setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteUser = () => {
+      if (userToDelete) {
+          deleteUser(userToDelete);
+          toast.success('User deleted successfully');
+          setUserToDelete(null);
       }
   };
 
-
-
   return (
-    <div className="space-y-6 pb-20">
-        {/* Unified Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-                <p className="text-sm text-gray-500 mt-1">Manage platform preferences and user access</p>
-            </div>
+    <div className="space-y-4 pb-12">
+        {/* Compact Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white p-3 rounded-xl shadow-input">
+            <h1 className="text-xl font-bold text-gray-900 px-1">Settings</h1>
 
-            {/* Tabs */}
-            <div className="flex bg-gray-100 p-1 rounded-lg w-full md:w-auto">
+            {/* Compact Tabs */}
+            <div className="flex bg-gray-50 p-1 rounded-lg w-full md:w-auto border border-gray-100">
                 <button
                     onClick={() => setActiveTab('profile')}
-                    className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium rounded-md transition-all ${
+                    className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-md transition-all ${
                         activeTab === 'profile'
-                            ? 'bg-white text-indigo-600 shadow-sm'
+                            ? 'bg-white text-red-600 shadow-sm border border-red-100'
                             : 'text-gray-500 hover:text-gray-700'
                     }`}
                 >
-                    <User size={16} />
+                    <User size={14} />
                     Profile
                 </button>
                 {currentUser?.role === 'admin' && (
                     <button
                         onClick={() => setActiveTab('users')}
-                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium rounded-md transition-all ${
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-md transition-all ${
                             activeTab === 'users'
-                                ? 'bg-white text-indigo-600 shadow-sm'
+                                ? 'bg-white text-red-600 shadow-sm border border-red-100'
                                 : 'text-gray-500 hover:text-gray-700'
                         }`}
                     >
-                        <Shield size={16} />
-                        User Management
+                        <Shield size={14} />
+                        Users
                     </button>
                 )}
             </div>
         </div>
 
         {/* Content Area */}
-        <div className="animate-fade-in">
+        <div className="animate-fade-in px-0.5">
              {activeTab === 'profile' ? (
-                <div className="max-w-4xl mx-auto space-y-6">
-                    {/* Profile Card */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-8 border-b border-gray-100 bg-gray-50/30">
-                            <div className="flex flex-col sm:flex-row items-center gap-6">
-                                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-indigo-500 text-3xl font-bold shadow-md border-4 border-indigo-50">
+                <div className="max-w-3xl mx-auto space-y-4">
+                    <div className="bg-white rounded-xl shadow-input overflow-hidden">
+                        <div className="p-4 sm:p-6 border-b border-gray-50 bg-gray-50/20">
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-red-600 text-2xl font-bold shadow-sm border-2 border-red-50">
                                     {currentUser?.id.charAt(0).toUpperCase()}
                                 </div>
-                                <div className="text-center sm:text-left">
-                                    <h2 className="text-2xl font-bold text-gray-900">{currentUser?.id}</h2>
-                                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mt-2 ${
-                                        currentUser?.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-                                    }`}>
-                                        <Shield size={12} />
+                                <div>
+                                    <h2 className="text-lg font-bold text-gray-900">{currentUser?.id}</h2>
+                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-100 mt-1">
+                                        <Shield size={10} />
                                         {currentUser?.role}
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-4">
-                                <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                                    <User size={18} className="text-indigo-500" />
-                                    Account Details
+                        <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                                    <User size={16} className="text-red-600" />
+                                    Account
                                 </h3>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Username</label>
-                                        <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-700 font-medium">
-                                            {currentUser?.id}
-                                        </div>
+                                <div className="space-y-2">
+                                    <div className="p-2.5 bg-gray-50 rounded-lg border border-gray-100 text-gray-700 text-sm">
+                                        <span className="text-[10px] text-gray-400 block uppercase font-bold">Username</span>
+                                        {currentUser?.id}
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Role</label>
-                                        <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-700 font-medium capitalize">
-                                            {currentUser?.role}
-                                        </div>
+                                    <div className="p-2.5 bg-gray-50 rounded-lg border border-gray-100 text-gray-700 text-sm capitalize">
+                                        <span className="text-[10px] text-gray-400 block uppercase font-bold">Role</span>
+                                        {currentUser?.role}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                                    <Bell size={18} className="text-indigo-500" />
-                                    Notifications
+                            <div className="space-y-3">
+                                <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                                    <Bell size={16} className="text-red-600" />
+                                    Alerts
                                 </h3>
-                                <div className="space-y-3">
-                                    <label className="flex items-center justify-between p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group">
-                                        <span className="text-gray-700 font-medium group-hover:text-indigo-700">Email Notifications</span>
-                                        <div className="w-11 h-6 bg-indigo-600 rounded-full relative transition-colors">
-                                            <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between p-3 border border-gray-100 rounded-lg bg-gray-50/50">
+                                        <span className="text-xs font-medium text-gray-700">Email</span>
+                                        <div className="w-9 h-5 bg-red-600 rounded-full relative">
+                                            <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
                                         </div>
-                                    </label>
-                                    <label className="flex items-center justify-between p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
-                                        <span className="text-gray-600 font-medium">Browser Alerts</span>
-                                        <div className="w-11 h-6 bg-gray-200 rounded-full relative transition-colors">
-                                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+                                        <span className="text-xs text-gray-500">Browser</span>
+                                        <div className="w-9 h-5 bg-gray-200 rounded-full relative">
+                                            <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
                                         </div>
-                                    </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             ) : (
-                <div className="space-y-6">
-                    {/* User Management Actions */}
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <div className="relative w-full sm:w-72">
-                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                             <input type="text" placeholder="Search users..." className="w-full pl-10 pr-4 py-2 bg-gray-50 rounded-lg border-none focus:ring-2 focus:ring-indigo-100 outline-none transition-all" />
+                <div className="space-y-4">
+                    <div className="bg-white p-2 rounded-xl shadow-input flex flex-col sm:flex-row justify-between gap-2">
+                        <div className="relative flex-1">
+                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                             <input type="text" placeholder="Search users..." className="w-full pl-9 pr-4 py-2 bg-gray-50 rounded-lg text-sm outline-none focus:ring-1 focus:ring-red-100" />
                         </div>
                          <button 
                             onClick={openAddUserModal}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-all active:scale-95"
+                            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 shadow-md transition-all active:scale-95"
                         >
-                            <Plus size={20} />
+                            <Plus size={16} />
                             Add User
                         </button>
                     </div>
                     
-                    {/* Users Table */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        {/* Desktop Table View */}
-                        <div className="hidden md:block overflow-x-auto">
+                    <div className="bg-white rounded-xl shadow-input overflow-hidden h-[calc(100vh-250px)] flex flex-col">
+                        <div className="overflow-auto flex-1">
                             <table className="w-full text-left border-collapse">
-                                <thead className="bg-gray-50/50">
-                                    <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 font-bold tracking-wider">
-                                        <th className="p-5">User</th>
-                                        <th className="p-5">Permissions</th>
-                                        <th className="p-5 text-right">Actions</th>
+                                <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
+                                    <tr className="border-b border-gray-100 text-[10px] uppercase text-gray-400 font-bold tracking-wider">
+                                        <th className="p-3">User</th>
+                                        <th className="p-3">Permissions</th>
+                                        <th className="p-3 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-50">
+                                <tbody className="divide-y divide-gray-50 text-xs text-gray-700">
                                     {users.map((user: UserType) => (
-                                        <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
-                                            <td className="p-5">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-bold text-sm border border-indigo-100">
+                                        <tr key={user.id} className="hover:bg-gray-50 group transition-colors">
+                                            <td className="p-3">
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center text-red-600 font-bold text-xs border border-red-100">
                                                         {user.id.charAt(0).toUpperCase()}
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-gray-900">{user.id}</p>
-                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mt-0.5 ${
-                                                            user.role === 'admin' 
-                                                                ? 'bg-purple-100 text-purple-700 border border-purple-200' 
-                                                                : 'bg-blue-100 text-blue-700 border border-blue-200'
-                                                        }`}>
-                                                            {user.role}
-                                                        </span>
+                                                        <p className="font-bold">{user.id}</p>
+                                                        <span className="text-[9px] font-bold uppercase text-gray-400">{user.role}</span>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="p-5">
-                                                <div className="flex flex-wrap gap-2 max-w-lg">
-                                                    {user.permissions?.slice(0, 5).map((perm: string) => (
-                                                        <span key={perm} className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                            <td className="p-3 max-w-[200px] sm:max-w-none">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {user.permissions?.slice(0, 4).map((perm: string) => (
+                                                        <span key={perm} className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 text-[9px] font-bold border border-gray-200 uppercase">
                                                             {perm}
                                                         </span>
                                                     ))}
-                                                    {(user.permissions?.length || 0) > 5 && (
-                                                        <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-50 text-gray-400 border border-gray-200">
-                                                            +{(user.permissions?.length || 0) - 5} more
-                                                        </span>
+                                                    {(user.permissions?.length || 0) > 4 && (
+                                                        <span className="text-[9px] text-gray-400">+{user.permissions.length - 4}</span>
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="p-5 text-right">
-                                                <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button 
-                                                        onClick={() => openEditUserModal(user)}
-                                                        className="px-4 py-2 rounded-lg text-indigo-600 bg-indigo-50 hover:bg-indigo-100 text-xs font-bold transition-colors"
-                                                    >
-                                                        Edit
-                                                    </button>
+                                            <td className="p-3 text-right">
+                                                <div className="flex justify-end gap-1.5">
+                                                    <button onClick={() => openEditUserModal(user)} className="p-1.5 text-red-600 bg-red-50 rounded-lg font-bold">Edit</button>
                                                     {user.id !== currentUser?.id && (
-                                                        <button 
-                                                            onClick={() => handleDeleteUser(user.id)}
-                                                            className="px-4 py-2 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 text-xs font-bold transition-colors"
-                                                        >
-                                                            Delete
-                                                        </button>
+                                                        <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-gray-400 hover:text-red-600 bg-gray-50 rounded-lg font-bold">X</button>
                                                     )}
                                                 </div>
                                             </td>
@@ -286,168 +254,71 @@ const Settings = () => {
                                 </tbody>
                             </table>
                         </div>
-
-                        {/* Mobile Card View */}
-                        <div className="md:hidden divide-y divide-gray-100">
-                             {users.map((user: UserType) => (
-                                <div key={user.id} className="p-5 space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-bold text-lg border border-indigo-100">
-                                                {user.id.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-gray-900 text-base">{user.id}</p>
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                                                    user.role === 'admin' 
-                                                        ? 'bg-purple-100 text-purple-700' 
-                                                        : 'bg-blue-100 text-blue-700'
-                                                }`}>
-                                                    {user.role}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Permissions</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {user.permissions?.map((perm: string) => (
-                                                <span key={perm} className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                                                    {perm}
-                                                </span>
-                                            ))}
-                                            {(user.permissions?.length || 0) === 0 && (
-                                                <span className="text-xs text-gray-400 italic">No permissions assigned</span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-3 pt-2 border-t border-gray-50">
-                                        <button 
-                                            onClick={() => openEditUserModal(user)}
-                                            className="flex-1 py-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg text-sm font-bold"
-                                        >
-                                            Edit User
-                                        </button>
-                                        {user.id !== currentUser?.id && (
-                                            <button 
-                                                onClick={() => handleDeleteUser(user.id)}
-                                                className="flex-1 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg text-sm font-bold"
-                                            >
-                                                Delete
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                             ))}
-                        </div>
                     </div>
                 </div>
             )}
         </div>
 
-      {/* User Logic Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-100 transition-all">
-                <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
-                    <h2 className="text-xl font-bold text-gray-800">
-                        {editingUser ? 'Edit User Details' : 'Create New User'}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform animate-fade-in-up">
+                <div className="flex items-center justify-between p-4 border-b border-gray-50 bg-gray-50/50">
+                    <h2 className="text-sm font-bold text-gray-800">
+                        {editingUser ? 'Edit User' : 'New User'}
                     </h2>
-                    <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-200 rounded-full transition-colors">
-                        <X size={24} />
+                    <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                        <X size={20} />
                     </button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Username</label>
-                                <input 
-                                    type="text" 
-                                    required
-                                    disabled={!!editingUser}
-                                    className={`w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all ${editingUser ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white font-medium'}`}
-                                    value={formData.id}
-                                    onChange={e => setFormData({...formData, id: e.target.value})}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Role</label>
-                                <select 
-                                    className="w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium"
-                                    value={formData.role}
-                                    onChange={e => setFormData({...formData, role: e.target.value as 'admin' | 'user'})}
-                                >
-                                    <option value="user">User</option>
-                                    <option value="admin">Admin</option>
-                                </select>
-                            </div>
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase">Username</label>
+                            <input type="text" required disabled={!!editingUser} className="w-full p-2 border border-gray-100 rounded-lg text-xs outline-none focus:ring-1 focus:ring-red-500" value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} />
                         </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Password</label>
-                            <input 
-                                type="text" 
-                                required
-                                className="w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
-                                value={formData.password}
-                                onChange={e => setFormData({...formData, password: e.target.value})}
-                            />
-                        </div>
-                        
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Page Permissions</label>
-                            <div className="grid grid-cols-2 gap-3">
-                                {availablePermissions.map(perm => (
-                                    <label key={perm} className={`
-                                        flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all
-                                        ${(formData.permissions || []).includes(perm) 
-                                            ? 'bg-indigo-50 border-indigo-200 shadow-sm' 
-                                            : 'border-gray-100 hover:bg-gray-50'}
-                                    `}>
-                                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
-                                            (formData.permissions || []).includes(perm)
-                                                ? 'bg-indigo-600 border-indigo-600'
-                                                : 'border-gray-300 bg-white'
-                                        }`}>
-                                            {(formData.permissions || []).includes(perm) && <Check size={14} className="text-white" />}
-                                        </div>
-                                        <input 
-                                            type="checkbox" 
-                                            className="hidden"
-                                            checked={(formData.permissions || []).includes(perm)}
-                                            onChange={() => handlePermissionToggle(perm)}
-                                        />
-                                        <span className={`text-sm font-medium ${(formData.permissions || []).includes(perm) ? 'text-indigo-900' : 'text-gray-600'}`}>
-                                            {perm}
-                                        </span>
-                                    </label>
-                                ))}
-                            </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase">Role</label>
+                            <select className="w-full p-2 border border-gray-100 rounded-lg text-xs outline-none focus:ring-1 focus:ring-red-500" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value as any})}>
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
                         </div>
                     </div>
-
-                    <div className="flex gap-4 pt-4 border-t border-gray-100">
-                        <button
-                            type="button"
-                            onClick={() => setIsModalOpen(false)}
-                            className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all hover:scale-[1.02]"
-                        >
-                            {editingUser ? 'Save Changes' : 'Create User'}
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase">Password</label>
+                        <input type="text" required className="w-full p-2 border border-gray-100 rounded-lg text-xs outline-none focus:ring-1 focus:ring-red-500" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase">Permissions</label>
+                        <div className="grid grid-cols-2 gap-1.5 h-32 overflow-y-auto p-1 border border-gray-50 rounded">
+                            {availablePermissions.map(perm => (
+                                <label key={perm} className="flex items-center gap-2 p-1.5 rounded-lg cursor-pointer hover:bg-gray-50 transition-all border border-transparent">
+                                    <input type="checkbox" checked={(formData.permissions || []).includes(perm)} onChange={() => handlePermissionToggle(perm)} className="w-3 h-3 text-red-600 rounded" />
+                                    <span className="text-[10px] font-medium text-gray-700">{perm}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                        <button type="submit" className="flex-1 py-2 rounded-lg bg-red-600 text-white text-xs font-bold shadow-lg shadow-red-100 active:scale-95 transition-all">
+                            {editingUser ? 'Update' : 'Create'}
                         </button>
                     </div>
                 </form>
             </div>
         </div>
       )}
+
+      {/* Custom Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDeleteUser}
+        title="Delete User"
+        message={`Are you sure you want to delete the user "${userToDelete}"? This action cannot be undone.`}
+        confirmText="Delete User"
+        type="confirm"
+      />
     </div>
   );
 };

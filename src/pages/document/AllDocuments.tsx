@@ -7,6 +7,7 @@ import EditDocument from './EditDocument';
 import ShareModal from './ShareModal';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { formatDate } from '../../utils/dateFormatter';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const AllDocuments = () => {
     const { documents, deleteDocument } = useDataStore();
@@ -57,20 +58,31 @@ const AllDocuments = () => {
     const [shareType, setShareType] = useState<'email' | 'whatsapp' | 'both' | null>(null);
     const [shareDoc, setShareDoc] = useState<{id: string, name: string} | null>(null);
 
+    // Modal States
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [docToDelete, setDocToDelete] = useState<string | null>(null);
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertMessage, setAlertMessage] = useState('');
+
     const handleEdit = (id: string) => {
         setEditingDocId(id);
         setIsEditModalOpen(true);
     };
 
     const handleDelete = (id: string) => {
-        if (window.confirm("Are you sure you want to delete this document?")) {
-            deleteDocument(id);
-            // Also remove from selected if necessary
-            if (selectedIds.has(id)) {
+        setDocToDelete(id);
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = () => {
+        if (docToDelete) {
+            deleteDocument(docToDelete);
+            if (selectedIds.has(docToDelete)) {
                 const newSelected = new Set(selectedIds);
-                newSelected.delete(id);
+                newSelected.delete(docToDelete);
                 setSelectedIds(newSelected);
             }
+            setDocToDelete(null);
         }
     };
 
@@ -82,7 +94,8 @@ const AllDocuments = () => {
 
     const handleDownload = (fileContent: string | undefined, fileName: string | null) => {
         if (!fileContent) {
-            alert("File content not available for download (demo data).");
+            setAlertMessage("This document is part of the demo data and its full file content is not available for download in this preview.");
+            setShowAlert(true);
             return;
         }
         const link = document.createElement('a');
@@ -127,18 +140,17 @@ const AllDocuments = () => {
                  </div>
              ) : (
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800">All Documents</h1>
-                  <p className="text-gray-500 text-sm mt-1">Manage your documents repository</p>
+                  <h1 className="text-xl font-bold text-gray-800">All Documents</h1>
                 </div>
              )}
         </div>
-        <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3">
+        <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
             <div className="relative flex-1 sm:flex-initial">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <input
                     type="text"
                     placeholder="Search documents..."
-                    className="pl-10 pr-4 py-2.5 w-full shadow-input border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50"
+                    className="pl-9 pr-4 py-2 w-full shadow-input border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-gray-50 text-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -149,7 +161,7 @@ const AllDocuments = () => {
                 <select
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
-                    className="appearance-none pl-4 pr-10 py-2.5 shadow-input border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 text-gray-700 text-sm font-medium cursor-pointer hover:bg-gray-100 transition-colors"
+                    className="appearance-none pl-3 pr-8 py-2 shadow-input border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 text-gray-700 text-xs font-medium cursor-pointer hover:bg-gray-100 transition-colors"
                 >
                     <option value="">All Categories</option>
                     {/* Dynamic Categories */}
@@ -157,22 +169,22 @@ const AllDocuments = () => {
                         <option key={cat} value={cat}>{cat}</option>
                     ))}
                 </select>
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </div>
              </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg whitespace-nowrap"
+            className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-all shadow-md hover:shadow-lg whitespace-nowrap text-sm"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
             <span>Add New</span>
           </button>
         </div>
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:flex flex-col bg-white rounded-xl shadow-input overflow-hidden h-[calc(100vh-350px)]">
+      <div className="hidden md:flex flex-col bg-white rounded-xl shadow-input overflow-hidden h-[calc(100vh-280px)]">
         <div className="overflow-y-auto flex-1">
             <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-20 bg-gray-50 shadow-sm">
@@ -424,6 +436,27 @@ const AllDocuments = () => {
         type={shareType} 
         documentId={shareDoc?.id || ''} 
         documentName={shareDoc?.name || ''} 
+    />
+
+    {/* Custom Confirmation Modal */}
+    <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDelete}
+        title="Delete Document"
+        message="Are you sure you want to delete this document? This action cannot be reversed."
+        confirmText="Delete"
+        type="confirm"
+    />
+
+    {/* Custom Alert Modal */}
+    <ConfirmModal
+        isOpen={showAlert}
+        onClose={() => setShowAlert(false)}
+        title="Demo Data"
+        message={alertMessage}
+        confirmText="Got it"
+        type="alert"
     />
     </>
   );

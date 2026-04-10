@@ -26,27 +26,27 @@ const Login = () => {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-indigo-50 to-indigo-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-red-50 to-red-50 flex items-center justify-center p-4 relative overflow-hidden">
       <div className="max-w-md w-full space-y-8 relative">
         {/* Main card */}
-        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-input transform transition-all duration-300 hover:shadow-indigo-100">
+        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-input transform transition-all duration-300 hover:shadow-red-50/50">
           {/* Header section */}
           <div className="text-center">
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-0">
               <div className="relative">
-                <div className="h-40 w-40 flex items-center justify-center transform transition-all duration-300 hover:scale-105">
-                  <img src="/Logo.jpeg" alt="Logo" className="h-full w-full object-cover rounded-full shadow-md" />
+                <div className="h-28 w-full flex items-center justify-center transform transition-all duration-300 hover:scale-105">
+                  <img src="/SKALogoEnglishBlack.svg" alt="Logo" className="h-40 w-40 object-contain rounded-2xl" />
                 </div>
               </div>
             </div>
 
-            <h2 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">
-              Document & Subscription System
+            <h2 className="text-xl font-bold text-gray-900 mb-1 tracking-tight">
+              Document & Subscription
             </h2>
           </div>
 
           {/* Form section */}
-          <div className="mt-4 space-y-2">
+          <div className="mt-8 space-y-2">
             {/* Username field */}
             <div className="relative">
               <label className="block text-sm font-semibold text-gray-700 mb-1 text-center">
@@ -55,11 +55,10 @@ const Login = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <User
-                    className={`h-5 w-5 transition-all duration-200 ${
-                      focusedField === "username"
-                        ? "text-indigo-600"
-                        : "text-gray-400"
-                    }`}
+                    className={`h-5 w-5 transition-all duration-200 ${focusedField === "username"
+                      ? "text-indigo-600"
+                      : "text-gray-400"
+                      }`}
                   />
                 </div>
                 <input
@@ -69,7 +68,7 @@ const Login = () => {
                   onChange={(e) => setUsername(e.target.value)}
                   onFocus={() => setFocusedField("username")}
                   onBlur={() => setFocusedField(null)}
-                  className="block w-full pl-12 pr-4 py-3 shadow-input border-none rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 hover:border-gray-300"
+                  className="block w-full pl-12 pr-4 py-3 shadow-input border-none rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 hover:border-gray-300"
                   placeholder="Enter your username"
                 />
               </div>
@@ -83,11 +82,10 @@ const Login = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock
-                    className={`h-5 w-5 transition-all duration-200 ${
-                      focusedField === "password"
-                        ? "text-indigo-600"
-                        : "text-gray-400"
-                    }`}
+                    className={`h-5 w-5 transition-all duration-200 ${focusedField === "password"
+                      ? "text-indigo-600"
+                      : "text-gray-400"
+                      }`}
                   />
                 </div>
                 <input
@@ -106,26 +104,26 @@ const Login = () => {
                   className="absolute inset-y-0 right-0 pr-4 flex items-center"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-indigo-600 transition-colors duration-200" />
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-red-600 transition-colors duration-200" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-indigo-600 transition-colors duration-200" />
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-red-600 transition-colors duration-200" />
                   )}
                 </button>
               </div>
             </div>
 
             {/* Submit button */}
-            <div className="">
+            <div className="relative pt-6">
               <button
                 onClick={handleSubmit}
-                className="w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className="w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-xl text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-red-200"
               >
                 Sign in
               </button>
             </div>
 
             {/* Demo credentials */}
-            <div className="mt-2 p-4 bg-gray-50 rounded-xl shadow-input border-none">
+            {/* <div className="mt-2 p-4 bg-gray-50 rounded-xl shadow-input border-none">
               <p className="text-sm font-bold text-gray-800 mb-2 text-center">
                 Demo Credentials
               </p>
@@ -151,7 +149,7 @@ const Login = () => {
                   <span className="text-gray-600">user / user123</span>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -159,11 +157,11 @@ const Login = () => {
         <div className="text-center">
           <p className="text-sm text-gray-600">
             Powered by{' '}
-            <a 
-              href="https://www.botivate.com" 
-              target="_blank" 
+            <a
+              href="https://www.botivate.com"
+              target="_blank"
               rel="noopener noreferrer"
-              className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200"
+              className="text-red-600 hover:text-red-800 font-medium transition-colors duration-200"
             >
               Botivate
             </a>
