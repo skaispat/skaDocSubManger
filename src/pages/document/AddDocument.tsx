@@ -1,308 +1,483 @@
-import { useState, useMemo } from 'react';
-import useDataStore, { DocumentItem } from '../../store/dataStore';
+import { useState } from 'react';
+import { documentService, DocumentType } from '../../api/documentService';
+import { storageService } from '../../api/storageService';
 import { toast } from 'react-hot-toast';
-import { X, Save, Plus, Upload, Trash2 } from 'lucide-react';
-import SearchableInput from '../../components/SearchableInput';
+import { X, Save, Plus, Trash2, FileText, Upload, FileUp, Eye } from 'lucide-react';
+import PreviewModal from '../../components/PreviewModal';
 
-interface DocumentEntry {
-    id: string;
-    documentName: string;
-    documentType: string;
-    category: string;
-    companyName: string; // The "Name" field
-    needsRenewal: boolean;
-    renewalDate?: string;
-    file: File | null;
-    fileName: string;
-    fileContent?: string;
+interface Entry {
+    id: string; // Internal temporary ID
+    category: 'Company' | 'Calibration' | 'Project' | 'Compliance';
+    // Common fields
+    id_no: string;
+    document_view: string | null;
+    files: File[]; // Updated for multiple storage
+    renewable: 'Yes' | 'No';
+    renewable_date: string;
+    status_of_document: string;
+    validity_period: string;
+    document_type: string;
+    // Category specific
+    document_name: string; // Company / Project
+    instrument_name: string; // Calibration
+    brand_name: string; // Calibration
+    id_sr_no: string; // Calibration
+    location: string; // Calibration
+    certificate_number: string; // Calibration
+    calibration_date: string; // Calibration
 }
 
 interface AddDocumentProps {
     isOpen: boolean;
     onClose: () => void;
+    initialCategory?: 'Company' | 'Calibration' | 'Project' | 'Compliance';
 }
 
-const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose }) => {
-    const { addDocuments, masterData, addMasterData } = useDataStore();
-
-    const defaultCategories = ['Personal', 'Company', 'Director'];
-
-    const [entries, setEntries] = useState<DocumentEntry[]>([
+const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose, initialCategory = 'Company' }) => {
+    const [entries, setEntries] = useState<Entry[]>([
         { 
             id: Math.random().toString(), 
-            documentName: '', 
-            documentType: '', 
-            category: '', 
-            companyName: '', 
-            needsRenewal: false, 
-            renewalDate: '', 
-            file: null, 
-            fileName: '' 
+            category: initialCategory,
+            id_no: '',
+            document_view: null,
+            files: [],
+            renewable: 'No',
+            renewable_date: '',
+            status_of_document: 'Completed',
+            validity_period: '',
+            document_name: '',
+            document_type: '',
+            instrument_name: '',
+            brand_name: '',
+            id_sr_no: '',
+            location: '',
+            certificate_number: '',
+            calibration_date: ''
         }
     ]);
 
-    const typeOptions = useMemo(() => Array.from(new Set(masterData?.map(m => m.documentType) || [])), [masterData]);
-    const categoryOptions = useMemo(() => {
-        const existing = masterData?.map(m => m.category) || [];
-        return Array.from(new Set([...existing, ...defaultCategories]));
-    }, [masterData]);
-    // nameOptions removed as we switched to Input for Name per requirement interpretation
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [previewData, setPreviewData] = useState<{ files: string[], name: string }>({ files: [], name: '' });
 
     if (!isOpen) return null;
 
-    const handleChange = (id: string, field: keyof DocumentEntry, value: any) => {
-        setEntries(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
-    };
-
-    const handleFileChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-             const reader = new FileReader();
-             reader.onloadend = () => {
-                 setEntries(prev => prev.map(item => item.id === id ? { 
-                     ...item, 
-                     file: file, 
-                     fileName: file.name, 
-                     fileContent: reader.result as string 
-                 } : item));
-             };
-             reader.readAsDataURL(file);
-        }
+    const handleChange = (id: string, field: keyof Entry, value: any) => {
+        setEntries(prev => prev.map(item => {
+            if (item.id === id) {
+                const updated = { ...item, [field]: value };
+                // Auto set status to Completed if Renewable is No
+                if (field === 'renewable' && value === 'No') {
+                    updated.status_of_document = 'Completed';
+                }
+                return updated;
+            }
+            return item;
+        }));
     };
 
     const addEntry = () => {
         if (entries.length >= 10) {
-            toast.error("You can add maximum 10 documents at a time.");
+            toast.error("Max 10 entries allowed");
             return;
         }
         setEntries(prev => [
             ...prev,
             { 
                 id: Math.random().toString(), 
-                documentName: '', 
-                documentType: '', 
-                category: '', 
-                companyName: '', 
-                needsRenewal: false, 
-                renewalDate: '', 
-                file: null, 
-                fileName: '' 
+                category: 'Company',
+                id_no: '',
+                document_view: null,
+                files: [],
+                renewable: 'No',
+                renewable_date: '',
+                status_of_document: 'Completed',
+                validity_period: '',
+                document_name: '',
+                document_type: '',
+                instrument_name: '',
+                brand_name: '',
+                id_sr_no: '',
+                location: '',
+                certificate_number: '',
+                calibration_date: ''
             }
         ]);
     };
 
     const removeEntry = (id: string) => {
-        if (entries.length === 1) {
-            toast.error("At least one document is required.");
-            return;
-        }
+        if (entries.length === 1) return;
         setEntries(prev => prev.filter(item => item.id !== id));
     };
+    
+    const handleLocalPreview = (files: File[], documentName: string) => {
+        if (files.length === 0) return;
+        
+        // Create temporary blob URLs for the local files
+        const blobUrls = files.map(file => URL.createObjectURL(file));
+        setPreviewData({ 
+            files: blobUrls, 
+            name: documentName || 'New Document' 
+        });
+        setIsPreviewOpen(true);
 
-    const getNameLabel = (category: string) => {
-        const c = category?.toLowerCase() || '';
-        if (c.includes('personal')) return 'Person Name';
-        if (c.includes('director')) return 'Director Name';
-        if (c.includes('company')) return 'Company Name';
-        return 'Name';
+        // We should ideally revoke these URLs when modal closes, 
+        // but since they are small in number, browser cleanup on unmount is usually okay.
+        // For robustness, we will clear them in a bit.
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        for (const entry of entries) {
-            if (!entry.documentName || !entry.documentType || !entry.category || !entry.companyName) {
-                toast.error("Please fill all required fields.");
-                return;
+        setIsSubmitting(true);
+
+        try {
+            for (const entry of entries) {
+                let table: DocumentType = 'company_documents';
+                let payload: any = {};
+                let finalDocView = entry.document_view;
+
+                // Handle multiple file uploads if present
+                if (entry.files && entry.files.length > 0) {
+                    const uploadToast = toast.loading(`Uploading ${entry.files.length} documents for ${entry.category}...`);
+                    
+                    const uploadPromises = entry.files.map(file => storageService.uploadFile(file));
+                    const uploadedUrls = await Promise.all(uploadPromises);
+                    
+                    toast.dismiss(uploadToast);
+                    
+                    const validUrls = uploadedUrls.filter(url => url !== null) as string[];
+                    
+                    if (validUrls.length === 0) {
+                        toast.error(`Failed to upload files for ${entry.category}`);
+                        setIsSubmitting(false);
+                        return;
+                    }
+                    
+                    finalDocView = validUrls.join(',');
+                }
+
+                // id_no is auto-generated by the database as sequential numbers (1, 2, 3...)
+
+                if (entry.category === 'Calibration') {
+                    table = 'calibration_certificate';
+                    payload = {
+                        instrument_name: entry.instrument_name,
+                        document_view: finalDocView,
+                        brand_name: entry.brand_name,
+                        id_sr_no: entry.id_sr_no,
+                        location: entry.location,
+                        certificate_number: entry.certificate_number,
+                        renewable: entry.renewable,
+                        renewable_date: entry.renewable_date || null,
+                        calibration_date: entry.calibration_date || null,
+                        status_of_document: entry.status_of_document,
+                        validity_period: entry.validity_period
+                    };
+                } else if (entry.category === 'Project') {
+                    table = 'project_approval';
+                    payload = {
+                        document_name: entry.document_name,
+                        document_view: finalDocView,
+                        renewable: entry.renewable,
+                        renewable_date: entry.renewable_date || null,
+                        status_of_document: entry.status_of_document,
+                        validity_period: entry.validity_period
+                    };
+                } else if (entry.category === 'Compliance') {
+                    table = 'compliance_documents';
+                    payload = {
+                        document_name: entry.document_name,
+                        document_view: finalDocView,
+                        renewable: entry.renewable,
+                        renewable_date: entry.renewable_date || null,
+                        status_of_document: entry.status_of_document,
+                        validity_period: entry.validity_period,
+                        document_type: entry.document_type
+                    };
+                } else {
+                    table = 'company_documents';
+                    payload = {
+                        document_name: entry.document_name,
+                        document_view: finalDocView,
+                        renewable: entry.renewable,
+                        renewable_date: entry.renewable_date || null,
+                        status_of_document: entry.status_of_document,
+                        validity_period: entry.validity_period
+                    };
+                }
+
+                await documentService.create(table, payload);
             }
-            if (entry.needsRenewal && !entry.renewalDate) {
-                toast.error("Please select a renewal date.");
-                return;
-            }
+
+            toast.success("Records saved successfully");
+            setEntries([
+                { 
+                    id: Math.random().toString(), 
+                    category: initialCategory,
+                    id_no: '',
+                    document_view: null,
+                    files: [],
+                    renewable: 'No',
+                    renewable_date: '',
+                    status_of_document: 'Completed',
+                    validity_period: '',
+                    document_name: '',
+                    document_type: '',
+                    instrument_name: '',
+                    brand_name: '',
+                    id_sr_no: '',
+                    location: '',
+                    certificate_number: '',
+                    calibration_date: ''
+                }
+            ]);
+            onClose();
+        } catch (err: any) {
+            toast.error("Database Error");
+        } finally {
+            setIsSubmitting(false);
         }
-
-        const newDocuments: DocumentItem[] = [];
-
-        entries.forEach(entry => {
-            const exists = masterData?.some(m => 
-                m.companyName.toLowerCase() === entry.companyName.toLowerCase() &&
-                m.documentType.toLowerCase() === entry.documentType.toLowerCase() &&
-                m.category.toLowerCase() === entry.category.toLowerCase()
-            );
-
-            if (!exists) {
-                addMasterData({
-                    id: Math.random().toString(36).substr(2, 9),
-                    companyName: entry.companyName,
-                    documentType: entry.documentType,
-                    category: entry.category
-                });
-            }
-
-            const randomSN = 'SN-' + Math.floor(100 + Math.random() * 900);
-            
-            newDocuments.push({
-                id: Math.random().toString(36).substr(2, 9),
-                sn: randomSN,
-                documentName: entry.documentName,
-                companyName: entry.companyName,
-                documentType: entry.documentType,
-                category: entry.category,
-                needsRenewal: entry.needsRenewal,
-                renewalDate: entry.needsRenewal ? entry.renewalDate : undefined,
-                file: entry.fileName || null,
-                fileContent: entry.fileContent,
-                date: new Date().toISOString().split('T')[0],
-                status: 'Active'
-            });
-        });
-
-        addDocuments(newDocuments);
-        toast.success(`${newDocuments.length} Document(s) added successfully`);
-        onClose();
-        
-        setEntries([{ 
-            id: Math.random().toString(), 
-            documentName: '', 
-            documentType: '', 
-            category: '', 
-            companyName: '', 
-            needsRenewal: false, 
-            renewalDate: '', 
-            file: null, 
-            fileName: '' 
-        }]);
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 bg-black/40 backdrop-blur-sm overflow-y-auto">
-            <div className="relative w-full max-w-4xl bg-white rounded-xl shadow-input my-4">
-                {/* Header Compact */}
-                <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto font-sans">
+            <div className="relative w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                {/* Header */}
+                <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-gray-50">
                     <div>
-                        <h2 className="text-lg font-bold text-gray-800">New Document Entry</h2>
-                        <p className="text-xs text-gray-500">Add details (Max 10)</p>
+                        <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight flex items-center gap-2">
+                            <Plus className="text-red-600" size={24} />
+                            Add Records
+                        </h2>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Multi-Document Entry System</p>
                     </div>
-                    <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-                        <X size={20} />
+                    <button onClick={onClose} className="p-2 text-gray-400 hover:text-red-600 transition-colors">
+                        <X size={24} />
                     </button>
                 </div>
 
-                {/* Body Compact */}
-                <div className="p-4 max-h-[75vh] overflow-y-auto bg-gray-50/30">
-                    <form id="add-doc-form" onSubmit={handleSubmit} className="space-y-3">
+                {/* Body */}
+                <div className="p-8 max-h-[70vh] overflow-y-auto no-scrollbar bg-white">
+                    <form id="supabase-add-form" onSubmit={handleSubmit} className="space-y-8">
                         {entries.map((entry, index) => (
-                            <div key={entry.id} className="bg-white p-4 rounded-lg shadow-input relative group">
-                                <div className="flex justify-between items-center mb-2 pb-1 border-b border-gray-50">
-                                    <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">Document #{index + 1}</h3>
-                                    {entries.length > 1 && (
-                                        <button type="button" onClick={() => removeEntry(entry.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded transition-colors">
-                                            <Trash2 size={14} />
-                                        </button>
-                                    )}
+                            <div key={entry.id} className="relative p-6 rounded-2xl border border-gray-100 bg-gray-50/20 space-y-4">
+                                <div className="flex justify-between items-center mb-2">
+                                    <div className="flex bg-white p-1 rounded-lg border border-gray-100 shadow-sm">
+                                        {(['Company', 'Calibration', 'Project', 'Compliance'] as const).map(cat => (
+                                            <button
+                                                key={cat}
+                                                type="button"
+                                                onClick={() => handleChange(entry.id, 'category', cat)}
+                                                className={`px-4 py-1.5 rounded-md text-[9px] font-bold uppercase tracking-wider transition-all ${entry.category === cat ? 'bg-red-600 text-white shadow-sm' : 'text-gray-400 hover:text-gray-900'}`}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <button type="button" onClick={() => removeEntry(entry.id)} className="text-gray-300 hover:text-red-600 transition-colors">
+                                        <Trash2 size={18} />
+                                    </button>
                                 </div>
 
-                                {/* Compact Grid: Gaps reduced */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    
-                                    {/* 1. Document Name (Input) */}
-                                    <div>
-                                         <label className="block text-xs font-semibold text-gray-600 mb-1">Document Name <span className="text-red-500">*</span></label>
-                                         <input
-                                             type="text"
-                                             required
-                                             className="w-full p-2 text-xs shadow-input border-none rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none font-medium bg-gray-50/50 focus:bg-white transition-colors"
-                                             value={entry.documentName}
-                                             onChange={e => handleChange(entry.id, 'documentName', e.target.value)}
-                                             placeholder="e.g. Agreement"
-                                         />
-                                    </div>
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    {/* ID No is now auto-generated and hidden */}
 
-                                    {/* 2. Document Type (Searchable) */}
-                                    <div>
-                                         {/* Note: SearchableInput styles are internal, but we can wrap it or accept it's slightly larger. 
-                                             For compacting, we might just use it as is but careful with layout. 
-                                             Ideally, SearchableInput should support size prop. 
-                                             For now, we leave it as 'proper' update focused on layout gaps. */}
-                                         <SearchableInput compact
-                                             label="Document Type"
-                                             value={entry.documentType}
-                                             onChange={val => handleChange(entry.id, 'documentType', val)}
-                                             options={typeOptions}
-                                             placeholder="Select Type..."
-                                             required
-                                         />
-                                    </div>
-
-                                    {/* 3. Category (Searchable) */}
-                                    <div>
-                                         <SearchableInput compact
-                                             label="Category"
-                                             value={entry.category}
-                                             onChange={val => handleChange(entry.id, 'category', val)}
-                                             options={categoryOptions}
-                                             placeholder="Select Category..."
-                                             required
-                                         />
-                                    </div>
-
-                                    {/* 4. Name (Input - as changed from Searchable per 'Input' requirement) */}
-                                    <div>
-                                         <label className="block text-xs font-semibold text-gray-600 mb-1">{getNameLabel(entry.category)} <span className="text-red-500">*</span></label>
-                                         <input
-                                             type="text"
-                                             required
-                                             className="w-full p-2 text-xs shadow-input border-none rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none font-medium bg-gray-50/50 focus:bg-white transition-colors"
-                                             value={entry.companyName}
-                                             onChange={e => handleChange(entry.id, 'companyName', e.target.value)}
-                                             placeholder={`Enter ${getNameLabel(entry.category)}...`}
-                                         />
-                                    </div>
-                                    
-                                    {/* 5. Needs Renewal & Date */}
-                                    <div className="flex items-center gap-3 bg-gray-50/50 p-2 rounded-lg border border-gray-100">
-                                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                                            <input 
-                                                type="checkbox"
-                                                className="w-3.5 h-3.5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                                                checked={entry.needsRenewal}
-                                                onChange={e => handleChange(entry.id, 'needsRenewal', e.target.checked)}
-                                            />
-                                            <span className="text-xs font-medium text-gray-700">Need Renewal</span>
-                                        </label>
-                                        
-                                        {entry.needsRenewal && (
-                                            <div className="flex-1">
+                                    {entry.category === 'Calibration' ? (
+                                        <>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Instrument</label>
                                                 <input
-                                                    type="date"
-                                                    className="w-full p-1.5 text-xs shadow-input border-none rounded focus:ring-1 focus:ring-indigo-500 outline-none bg-white"
-                                                    value={entry.renewalDate || ''}
-                                                    onChange={e => handleChange(entry.id, 'renewalDate', e.target.value)}
-                                                    required
+                                                    type="text"
+                                                    className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900"
+                                                    value={entry.instrument_name}
+                                                    onChange={e => handleChange(entry.id, 'instrument_name', e.target.value)}
                                                 />
                                             </div>
-                                        )}
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Brand</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900"
+                                                    value={entry.brand_name}
+                                                    onChange={e => handleChange(entry.id, 'brand_name', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Calibration Date</label>
+                                                <input
+                                                    type="date"
+                                                    className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900"
+                                                    value={entry.calibration_date}
+                                                    onChange={e => handleChange(entry.id, 'calibration_date', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Serial No (DB)</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900"
+                                                    value={entry.id_sr_no}
+                                                    onChange={e => handleChange(entry.id, 'id_sr_no', e.target.value)}
+                                                    placeholder="e.g. SR-001"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Location</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900"
+                                                    value={entry.location}
+                                                    onChange={e => handleChange(entry.id, 'location', e.target.value)}
+                                                    placeholder="Main Lab"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Cert Number</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900"
+                                                    value={entry.certificate_number}
+                                                    onChange={e => handleChange(entry.id, 'certificate_number', e.target.value)}
+                                                />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className={`${entry.category === 'Compliance' ? 'md:col-span-2' : 'md:col-span-3'} space-y-1.5`}>
+                                                <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Document Name</label>
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900"
+                                                    value={entry.document_name}
+                                                    onChange={e => handleChange(entry.id, 'document_name', e.target.value)}
+                                                />
+                                            </div>
+                                            {entry.category === 'Compliance' && (
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Document Type</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900"
+                                                        value={entry.document_type}
+                                                        onChange={e => handleChange(entry.id, 'document_type', e.target.value)}
+                                                        placeholder="e.g. Legal, HR"
+                                                    />
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Renewable</label>
+                                        <select
+                                            className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900 uppercase"
+                                            value={entry.renewable}
+                                            onChange={e => handleChange(entry.id, 'renewable', e.target.value)}
+                                        >
+                                            <option value="No">No</option>
+                                            <option value="Yes">Yes</option>
+                                        </select>
                                     </div>
-                                    
-                                     {/* 6. File Upload */}
-                                     <div>
-                                         <div className="relative">
-                                             <label className="block text-xs font-semibold text-gray-600 mb-1">Upload File</label>
-                                             <input
-                                                 type="file"
-                                                 id={`file-${entry.id}`}
-                                                 className="hidden"
-                                                 onChange={e => handleFileChange(entry.id, e)}
-                                             />
-                                             <label 
-                                                 htmlFor={`file-${entry.id}`}
-                                                 className="flex items-center justify-center gap-2 w-full p-2 border border-dashed border-gray-300 rounded-lg text-gray-600 cursor-pointer hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 transition-all bg-white"
-                                             >
-                                                 <Upload size={14} />
-                                                 <span className="text-xs font-medium truncate max-w-[180px]">{entry.fileName || "Choose File"}</span>
-                                             </label>
-                                         </div>
-                                     </div>
+                                    {entry.renewable === 'Yes' && (
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Renew Date</label>
+                                            <input
+                                                type="date"
+                                                className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900"
+                                                value={entry.renewable_date}
+                                                onChange={e => handleChange(entry.id, 'renewable_date', e.target.value)}
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Status</label>
+                                        <select
+                                            className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900 uppercase"
+                                            value={entry.status_of_document}
+                                            onChange={e => handleChange(entry.id, 'status_of_document', e.target.value)}
+                                        >
+                                            <option value="Pending">Pending</option>
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Completed">Completed</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Validity Period</label>
+                                        <input
+                                            type="text"
+                                            className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900"
+                                            value={entry.validity_period}
+                                            onChange={e => handleChange(entry.id, 'validity_period', e.target.value)}
+                                            placeholder="e.g. 1 Year"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2 space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1 px-1 flex justify-between">
+                                            <span>Upload Documents (Images/PDFs)</span>
+                                            {entry.files.length > 0 && <span className="text-red-600 tracking-tighter">{entry.files.length} Files selected</span>}
+                                        </label>
+                                        <div className="space-y-3">
+                                            <div className="relative group">
+                                                <input
+                                                    type="file"
+                                                    multiple
+                                                    accept="image/*,.pdf"
+                                                    className="hidden"
+                                                    id={`file-${entry.id}`}
+                                                    onChange={e => {
+                                                        const newFiles = e.target.files ? Array.from(e.target.files) : [];
+                                                        handleChange(entry.id, 'files', [...entry.files, ...newFiles]);
+                                                    }}
+                                                />
+                                                <label 
+                                                    htmlFor={`file-${entry.id}`}
+                                                    className={`flex items-center justify-center gap-3 w-full p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer bg-white ${entry.files.length > 0 ? 'border-red-200 bg-red-50/10' : 'border-gray-200 hover:border-red-400 hover:bg-red-50/5'}`}
+                                                >
+                                                    <div className="flex items-center gap-2 text-gray-400 group-hover:text-red-600 transition-colors">
+                                                        <Plus size={20} />
+                                                        <span className="text-sm font-bold">{entry.files.length > 0 ? 'Add More Files' : 'Select PDF or Images'}</span>
+                                                    </div>
+                                                </label>
+                                            </div>
+
+                                            {entry.files.length > 0 && (
+                                                <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto no-scrollbar p-1">
+                                                    {entry.files.map((file, fIdx) => (
+                                                        <div key={fIdx} className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-gray-100 shadow-sm animate-in slide-in-from-left-2">
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                <div className="p-1.5 bg-gray-50 rounded-lg text-gray-400">
+                                                                    <FileText size={14} />
+                                                                </div>
+                                                                <span className="text-[11px] font-bold text-gray-700 truncate">{file.name}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1">
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => handleLocalPreview(entry.files, entry.document_name || entry.instrument_name)}
+                                                                    className="text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all p-1.5 rounded-lg"
+                                                                    title="Preview"
+                                                                >
+                                                                    <Eye size={16} />
+                                                                </button>
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const updatedFiles = entry.files.filter((_, i) => i !== fIdx);
+                                                                        handleChange(entry.id, 'files', updatedFiles);
+                                                                    }}
+                                                                    className="text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all p-1.5 rounded-lg"
+                                                                    title="Remove"
+                                                                >
+                                                                    <X size={16} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -311,26 +486,43 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose }) => {
                             <button
                                 type="button"
                                 onClick={addEntry}
-                                className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-indigo-200 text-indigo-600 text-xs font-bold hover:bg-indigo-50 transition-colors bg-white shadow-sm"
+                                className="flex items-center gap-2 px-8 py-3.5 rounded-xl border-2 border-red-100 bg-white text-red-600 text-xs font-black uppercase tracking-widest hover:border-red-600 hover:bg-red-50 shadow-sm transition-all"
                             >
-                                <Plus size={16} />
-                                Add Another Document ({entries.length}/10)
+                                <Plus size={18} />
+                                Add Another Record
                             </button>
                         </div>
                     </form>
                 </div>
 
-                {/* Footer Compact */}
-                <div className="flex gap-3 px-5 py-4 border-t border-gray-100 bg-gray-50 rounded-b-xl">
-                    <button type="button" onClick={onClose} className="flex-1 py-2 px-3 rounded-lg border border-gray-200 text-gray-700 text-sm font-bold hover:bg-white hover:border-gray-300 transition-all shadow-sm">
-                        Cancel
+                {/* Footer */}
+                <div className="flex gap-4 px-8 py-6 border-t border-gray-100 bg-gray-50">
+                    <button type="button" onClick={onClose} className="flex-1 py-3 px-6 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-gray-900 transition-all">
+                        Dismiss
                     </button>
-                    <button type="submit" form="add-doc-form" className="flex-[2] flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100">
-                        <Save size={16} />
-                        Save
+                    <button 
+                        type="submit" 
+                        form="supabase-add-form" 
+                        disabled={isSubmitting}
+                        className={`flex-[2] flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-red-600 text-white text-xs font-bold uppercase tracking-wider shadow-sm hover:bg-black transition-all ${isSubmitting ? 'opacity-50' : ''}`}
+                    >
+                        {isSubmitting ? 'Syncing...' : 'Save to Database'}
                     </button>
                 </div>
             </div>
+
+            <PreviewModal 
+                isOpen={isPreviewOpen}
+                onClose={() => {
+                    // Revoke blob URLs to prevent memory leaks
+                    previewData.files.forEach(url => {
+                        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+                    });
+                    setIsPreviewOpen(false);
+                }}
+                files={previewData.files}
+                documentName={previewData.name}
+            />
         </div>
     );
 };

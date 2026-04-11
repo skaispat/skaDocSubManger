@@ -9,30 +9,38 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!username || !password) {
+        toast.error("Please fill all fields");
+        return;
+    }
 
-    const loggedInUser = login(username, password);
-    if (loggedInUser) {
-      // Navigate to root, which will redirect based on role
+    setIsLoading(true);
+    const success = await login(username, password);
+    setIsLoading(false);
+
+    if (success) {
+      toast.success("Login Successful!");
       navigate("/", { replace: true });
     } else {
-      toast.error("Invalid credentials");
+      toast.error("Invalid username or password");
     }
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-red-50 to-red-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-red-50 to-red-50 flex items-center justify-center p-4 relative overflow-hidden font-sans">
       <div className="max-w-md w-full space-y-8 relative">
         {/* Main card */}
-        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-input transform transition-all duration-300 hover:shadow-red-50/50">
+        <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-input transform transition-all duration-300 hover:shadow-red-100/50">
           {/* Header section */}
           <div className="text-center">
-            <div className="flex justify-center mb-0">
+            <div className="flex justify-center mb-2">
               <div className="relative">
                 <div className="h-28 w-full flex items-center justify-center transform transition-all duration-300 hover:scale-105">
                   <img src="/SKALogoEnglishBlack.svg" alt="Logo" className="h-40 w-40 object-contain rounded-2xl" />
@@ -40,23 +48,24 @@ const Login = () => {
               </div>
             </div>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-1 tracking-tight">
-              Document & Subscription
+            <h2 className="text-2xl font-black text-gray-900 mb-1 tracking-tight uppercase">
+              Management Portal
             </h2>
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Document & Subscription</p>
           </div>
 
           {/* Form section */}
-          <div className="mt-8 space-y-2">
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             {/* Username field */}
             <div className="relative">
-              <label className="block text-sm font-semibold text-gray-700 mb-1 text-center">
+              <label className="block text-[10px] font-black text-gray-500 mb-1.5 uppercase tracking-widest ml-1">
                 Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <User
                     className={`h-5 w-5 transition-all duration-200 ${focusedField === "username"
-                      ? "text-indigo-600"
+                      ? "text-red-500"
                       : "text-gray-400"
                       }`}
                   />
@@ -68,22 +77,22 @@ const Login = () => {
                   onChange={(e) => setUsername(e.target.value)}
                   onFocus={() => setFocusedField("username")}
                   onBlur={() => setFocusedField(null)}
-                  className="block w-full pl-12 pr-4 py-3 shadow-input border-none rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 hover:border-gray-300"
-                  placeholder="Enter your username"
+                  className="block w-full pl-12 pr-4 py-4 shadow-input border-none rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-red-50/50 transition-all duration-200 bg-gray-50/50 focus:bg-white font-bold text-sm"
+                  placeholder="admin"
                 />
               </div>
             </div>
 
             {/* Password field */}
             <div className="relative">
-              <label className="block text-sm font-semibold text-gray-700 mb-1 text-center">
+              <label className="block text-[10px] font-black text-gray-500 mb-1.5 uppercase tracking-widest ml-1">
                 Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock
                     className={`h-5 w-5 transition-all duration-200 ${focusedField === "password"
-                      ? "text-indigo-600"
+                      ? "text-red-500"
                       : "text-gray-400"
                       }`}
                   />
@@ -95,8 +104,8 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   onFocus={() => setFocusedField("password")}
                   onBlur={() => setFocusedField(null)}
-                  className="block w-full pl-12 pr-12 py-3 shadow-input border-none rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 hover:border-gray-300"
-                  placeholder="Enter your password"
+                  className="block w-full pl-12 pr-12 py-4 shadow-input border-none rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-red-50/50 transition-all duration-200 bg-gray-50/50 focus:bg-white font-bold text-sm"
+                  placeholder="••••••••"
                 />
                 <button
                   type="button"
@@ -113,55 +122,30 @@ const Login = () => {
             </div>
 
             {/* Submit button */}
-            <div className="relative pt-6">
+            <div className="relative pt-4">
               <button
-                onClick={handleSubmit}
-                className="w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-xl text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-red-200"
+                type="submit"
+                disabled={isLoading}
+                className={`w-full flex justify-center py-4 px-4 border border-transparent text-sm font-black rounded-2xl text-white bg-red-600 hover:bg-black focus:outline-none focus:ring-4 focus:ring-red-500 transition-all duration-300 transform active:scale-95 shadow-xl shadow-red-200 flex items-center gap-2 uppercase tracking-widest ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                Sign in
+                {isLoading ? (
+                    <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : null}
+                {isLoading ? 'Processing...' : 'Secure Login'}
               </button>
             </div>
-
-            {/* Demo credentials */}
-            {/* <div className="mt-2 p-4 bg-gray-50 rounded-xl shadow-input border-none">
-              <p className="text-sm font-bold text-gray-800 mb-2 text-center">
-                Demo Credentials
-              </p>
-              <div className="space-y-1 text-sm">
-                <div
-                  className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm cursor-pointer hover:bg-gray-100"
-                  onClick={() => {
-                    setUsername("admin");
-                    setPassword("admin123");
-                  }}
-                >
-                  <span className="font-semibold text-gray-700">Admin:</span>
-                  <span className="text-gray-600">admin / admin123</span>
-                </div>
-                <div
-                  className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 shadow-sm cursor-pointer hover:bg-gray-100"
-                  onClick={() => {
-                    setUsername("user");
-                    setPassword("user123");
-                  }}
-                >
-                  <span className="font-semibold text-gray-700">User:</span>
-                  <span className="text-gray-600">user / user123</span>
-                </div>
-              </div>
-            </div> */}
-          </div>
+          </form>
         </div>
 
-        {/* Footer - Matching your Layout footer */}
+        {/* Footer */}
         <div className="text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
             Powered by{' '}
             <a
               href="https://www.botivate.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-red-600 hover:text-red-800 font-medium transition-colors duration-200"
+              className="text-red-600 hover:text-black transition-colors duration-200"
             >
               Botivate
             </a>

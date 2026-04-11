@@ -1,170 +1,260 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, CreditCard, FileText } from 'lucide-react';
-import useDataStore from '../../store/dataStore';
-import useHeaderStore from '../../store/headerStore';
-import { formatDate } from '../../utils/dateFormatter';
+import { Plus, Search, CreditCard, Edit, Trash2, MoreHorizontal, RefreshCw, DollarSign, Building2 } from 'lucide-react';
+import useDataStore, { SubscriptionItem } from '../../store/dataStore';
 import AddSubscription from './AddSubscription';
+import EditSubscription from './EditSubscription';
+import { formatDate } from '../../utils/dateFormatter';
+import ConfirmModal from '../../components/ConfirmModal';
+import { subscriptionService } from '../../api/subscriptionService';
+import { toast } from 'react-hot-toast';
 
 const AllSubscriptions = () => {
-  const { setTitle } = useHeaderStore();
-  const { subscriptions, resetSubscriptions } = useDataStore();
+    const { subscriptions = [], setSubscriptions, deleteSubscription } = useDataStore();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  useEffect(() => {
-    setTitle('All Subscription');
-  }, [setTitle]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterFrequency, setFilterFrequency] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const fetchData = async () => {
+        setIsLoading(true);
+        try {
+            const data = await subscriptionService.getAll();
+            const mappedData: SubscriptionItem[] = data.map(item => ({
+                id: item.id_no,
+                sn: item.id_no,
+                companyName: item.company_name,
+                subscriberName: item.company_name,
+                subscriptionName: item.service_name,
+                price: item.price?.toString() || '0',
+                frequency: item.frequency || 'Monthly',
+                status: item.status || 'Active',
+                requestedDate: item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+                purpose: item.service_name,
+                startDate: '',
+                endDate: '',
+            }));
+            setSubscriptions(mappedData);
+        } catch (error) {
+            toast.error("Failed to fetch subscriptions");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-  useEffect(() => {
-    const hasBadData = subscriptions.some(item => !item.companyName);
-    if (subscriptions.length === 0 || hasBadData) {
-         if (resetSubscriptions) resetSubscriptions(); 
-    }
-  }, [subscriptions, resetSubscriptions]);
-  
-  const filteredData = subscriptions.filter(item => {
-    const matchesSearch = (item.subscriptionName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.companyName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.subscriberName || '').toLowerCase().includes(searchTerm.toLowerCase());
+    useEffect(() => {
+        fetchData();
+    }, []);
 
-    const matchesfreq = filterFrequency ? item.frequency === filterFrequency : true;
+    const filteredData = subscriptions.filter(item => {
+        const matchesSearch =
+            (item.subscriptionName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (item.companyName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (item.sn?.toLowerCase() || '').includes(searchTerm.toLowerCase());
 
-    return matchesSearch && matchesfreq;
-  });
+        return matchesSearch;
+    });
 
-  return (
-    <>
-    <div className="space-y-3">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white p-3 rounded-xl shadow-input">
-        <div className="min-h-[32px] flex items-center">
-             <h1 className="text-xl font-bold text-gray-800">All Subscriptions</h1>
-        </div>
-        <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
-            <div className="relative flex-1 sm:flex-initial">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <input
-                    type="text"
-                    placeholder="Search subscriptions..."
-                    className="pl-9 pr-4 py-2 w-full shadow-input border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 text-sm"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+    const [editingSubId, setEditingSubId] = useState<string | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    const totalValue = filteredData.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0);
+
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [subToDelete, setSubToDelete] = useState<string | null>(null);
+
+    const handleEdit = (id: string) => {
+        setEditingSubId(id);
+        setIsEditModalOpen(true);
+    };
+
+    const handleDelete = (id: string) => {
+        setSubToDelete(id);
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = async () => {
+        if (subToDelete) {
+            const success = await subscriptionService.delete(subToDelete);
+            if (success) {
+                deleteSubscription(subToDelete);
+                toast.success("Subscription deleted");
+            } else {
+                toast.error("Failed to delete record");
+            }
+            setSubToDelete(null);
+        }
+    };
+
+    return (
+        <div className="space-y-4 font-sans">
+            {/* Stats Overview */}
+            {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest opacity-60">Total Active</p>
+                        <h4 className="text-2xl font-bold text-gray-900 mt-1">{filteredData.length}</h4>
+                    </div>
+                    <div className="p-3 bg-red-50 text-red-600 rounded-lg">
+                        <CreditCard size={24} />
+                    </div>
+                </div>
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between col-span-2">
+                    <div>
+                        <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest opacity-60">Total Recurring Value</p>
+                        <h4 className="text-2xl font-bold text-red-600 mt-1">₹{totalValue.toLocaleString()}</h4>
+                    </div>
+                    <div className="p-3 bg-green-50 text-green-600 rounded-lg">
+                        <DollarSign size={24} />
+                    </div>
+                </div>
+            </div> */}
+
+            {/* Actions & Search */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-80">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <input
+                            type="text"
+                            placeholder="SEARCH SUBSCRIPTIONS..."
+                            className="pl-9 pr-4 py-2 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-100 bg-gray-50 text-xs font-bold text-gray-900 placeholder:text-gray-400 placeholder:font-bold"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <button
+                        onClick={fetchData}
+                        disabled={isLoading}
+                        className={`p-2 bg-white border border-gray-200 text-gray-600 hover:text-red-600 rounded-lg transition-all ${isLoading ? 'animate-spin' : ''}`}
+                    >
+                        <RefreshCw size={18} />
+                    </button>
+                </div>
+
+                <button
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition-all text-xs font-bold uppercase tracking-wider"
+                >
+                    <Plus size={16} />
+                    New Subscription
+                </button>
             </div>
-            
-            <div className="relative">
-               <select
-                   value={filterFrequency}
-                   onChange={(e) => setFilterFrequency(e.target.value)}
-                   className="appearance-none pl-3 pr-8 py-2 shadow-input border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 text-gray-700 text-xs font-medium cursor-pointer hover:bg-gray-100 w-full sm:w-auto"
-               >
-                   <option value="">All Frequencies</option>
-                   {Array.from(new Set(subscriptions.map(s => s.frequency))).filter(Boolean).sort().map(freq => (
-                       <option key={freq} value={freq}>{freq}</option>
-                   ))}
-               </select>
-               <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-               </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-gray-50 shadow-sm text-[10px] md:text-[11px] uppercase font-black text-gray-950 tracking-widest">
+                                <th className="px-5 py-4 w-20 first:rounded-tl-lg">ID Reference</th>
+                                <th className="px-5 py-3">Subscription</th>
+                                <th className="px-5 py-3">Company</th>
+                                <th className="px-5 py-3 text-center">Frequency</th>
+                                <th className="px-5 py-3 text-center">Price</th>
+                                <th className="px-5 py-3 text-center">Status</th>
+                                <th className="px-5 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan={7} className="p-20 text-center">
+                                        <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
+                                    </td>
+                                </tr>
+                            ) : filteredData.map((item) => (
+                                <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                                    <td className="px-5 py-4 text-xs font-medium text-gray-500">{item.sn}</td>
+                                    <td className="px-5 py-4">
+                                        <div>
+                                            <p className="font-bold text-gray-900">{item.subscriptionName}</p>
+                                            <p className="text-[10px] text-gray-500 font-medium uppercase">{item.purpose}</p>
+                                        </div>
+                                    </td>
+                                    <td className="px-5 py-4">
+                                        <div className="flex items-center gap-2 text-xs font-medium text-gray-700">
+                                            <Building2 size={14} className="text-gray-400" />
+                                            {item.companyName}
+                                        </div>
+                                    </td>
+                                    <td className="px-5 py-4 text-center">
+                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px] font-bold uppercase">
+                                            {item.frequency}
+                                        </span>
+                                    </td>
+                                    <td className="px-5 py-4 text-center font-bold text-gray-900">₹{parseFloat(item.price).toLocaleString()}</td>
+                                    <td className="px-5 py-4 text-center">
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${item.status === 'Active' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                                            {item.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-5 py-4">
+                                        <div className="flex justify-end items-center gap-2">
+                                            <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg">
+                                                <Edit size={16} />
+                                            </button>
+                                            <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-all shadow-md text-sm"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add New</span>
-          </button>
-        </div>
-      </div>
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+                {isLoading ? (
+                    <div className="py-10 text-center">
+                        <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
+                    </div>
+                ) : filteredData.map((item) => (
+                    <div key={item.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-3">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h4 className="font-bold text-gray-900">{item.subscriptionName}</h4>
+                                <span className="text-[10px] text-gray-400 uppercase">ID: {item.sn}</span>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Active' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}`}>
+                                {item.status}
+                            </span>
+                        </div>
 
-      {/* Desktop Table View */}
-      <div className="hidden md:flex flex-col bg-white rounded-xl shadow-input overflow-hidden h-[calc(100vh-280px)]">
-        <div className="overflow-auto flex-1">
-            <table className="w-full text-left border-collapse">
-            <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
-                <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider whitespace-nowrap">
-                <th className="px-3 py-2 bg-gray-50">S.N.</th>
-                <th className="px-3 py-2 bg-gray-50">Requested</th>
-                <th className="px-3 py-2 bg-gray-50">Company</th>
-                <th className="px-3 py-2 bg-gray-50">Subscriber</th>
-                <th className="px-3 py-2 bg-gray-50">Service/Name</th>
-                <th className="px-3 py-2 bg-gray-50">Price</th>
-                <th className="px-3 py-2 bg-gray-50">Freq.</th>
-                <th className="px-3 py-2 bg-gray-50">Status</th>
-                </tr>
-            </thead>
-            <tbody className="text-sm divide-y divide-gray-50">
-                {filteredData.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="px-3 py-1.5 font-bold text-gray-700 text-xs">{item.sn}</td>
-                    <td className="px-3 py-1.5 text-gray-600 whitespace-nowrap text-xs">{formatDate(item.requestedDate)}</td>
-                    <td className="px-3 py-1.5 font-medium text-gray-900">{item.companyName}</td>
-                    <td className="px-3 py-1.5 text-gray-700 text-xs">{item.subscriberName}</td>
-                    <td className="px-3 py-1.5 font-medium text-red-600">{item.subscriptionName}</td>
-                    <td className="px-3 py-1.5 font-medium text-gray-900">{item.price}</td>
-                    <td className="px-3 py-1.5 text-gray-600 text-xs">{item.frequency}</td>
-                    <td className="px-3 py-1.5">
-                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                        item.status === 'Active' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-gray-50 text-gray-600 border border-gray-200'
-                    }`}>
-                        {item.status || 'Pending'}
-                    </span>
-                    </td>
-                </tr>
+                        <div className="flex justify-between items-center py-2 border-t border-gray-50 text-xs">
+                            <span className="text-gray-500">{item.companyName}</span>
+                            <span className="font-bold text-red-600">₹{parseFloat(item.price).toLocaleString()}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                            <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px] font-bold uppercase">{item.frequency}</span>
+                            <div className="flex gap-2">
+                                <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600">
+                                    <Edit size={16} />
+                                </button>
+                                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600">
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 ))}
-            </tbody>
-            </table>
-        </div>
-      </div>
-
-      {/* Mobile Cards View */}
-      <div className="md:hidden flex flex-col gap-3">
-        {filteredData.map((item) => (
-          <div key={item.id} className="bg-white p-3 rounded-xl shadow-input space-y-2">
-             <div className="flex justify-between items-start">
-                <div className="flex gap-2 items-start">
-                   <div className="h-8 w-8 flex items-center justify-center bg-red-50 text-red-600 rounded-lg shrink-0 mt-0.5">
-                      <CreditCard size={16} />
-                   </div>
-                   <div>
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                         <span className="text-[9px] font-mono font-bold text-gray-500 bg-gray-100 px-1 py-0.5 rounded uppercase">{item.sn}</span>
-                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                             item.status === 'Active' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-gray-50 text-gray-600 border border-gray-200'
-                         }`}>
-                             {item.status || 'Pending'}
-                         </span>
-                      </div>
-                      <h3 className="text-sm font-bold text-gray-900 leading-tight">{item.subscriptionName}</h3>
-                      <p className="text-[11px] text-gray-500 font-medium">{item.companyName}</p>
-                   </div>
-                </div>
-                <p className="font-bold text-gray-900 text-sm">{item.price}</p>
-             </div>
-             
-             <div className="grid grid-cols-2 gap-2 text-[10px] pt-2 border-t border-gray-50">
-                <div className="flex justify-between">
-                    <span className="text-gray-400">Subscriber:</span>
-                    <span className="font-medium text-gray-700">{item.subscriberName}</span>
-                </div>
-                <div className="flex justify-between">
-                     <span className="text-gray-400">Frequency:</span>
-                     <span className="font-medium text-gray-700">{item.frequency}</span>
-                </div>
-             </div>
-          </div>
-        ))}
-         {filteredData.length === 0 && (
-            <div className="p-8 text-center text-gray-400 bg-white rounded-xl border border-dashed border-gray-200">
-                <p className="text-sm">No subscriptions found</p>
             </div>
-        )}
-      </div>
-    </div>
-    <AddSubscription isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
-    </>
-  );
+
+            <AddSubscription isOpen={isAddModalOpen} onClose={() => { setIsAddModalOpen(false); fetchData(); }} />
+            <EditSubscription isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); fetchData(); }} subscriptionId={editingSubId} />
+
+            <ConfirmModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={confirmDelete}
+                title="Delete Subscription"
+                message="Are you sure you want to permanently delete this subscription?"
+                confirmText="Delete"
+                type="confirm"
+            />
+        </div>
+    );
 };
 export default AllSubscriptions;

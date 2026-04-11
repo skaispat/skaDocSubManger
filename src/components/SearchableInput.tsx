@@ -88,12 +88,12 @@ const SearchableInput: React.FC<SearchableInputProps> = ({
     };
 
     const inputClasses = compact 
-        ? "w-full p-2 pr-8 border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none transition-all text-xs"
-        : "w-full p-3 pr-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all";
+        ? "w-full p-2 pr-8 border border-gray-200 rounded-lg focus:ring-1 focus:ring-red-500 outline-none transition-all text-xs font-bold text-gray-900"
+        : "w-full p-3 pr-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition-all font-bold text-gray-900";
 
     const labelClasses = compact
-        ? "block text-xs font-semibold text-gray-600 mb-1"
-        : "block text-sm font-semibold text-gray-700 mb-1.5";
+        ? "block text-[10px] font-black text-gray-900 uppercase tracking-widest mb-1 ml-1"
+        : "block text-xs font-black text-gray-900 uppercase tracking-widest mb-1.5 ml-1";
 
     return (
         <div className="relative" ref={wrapperRef}>
@@ -142,11 +142,11 @@ const SearchableInput: React.FC<SearchableInputProps> = ({
                             <button
                                 key={index}
                                 type="button"
-                                className={`w-full text-left px-4 py-2.5 hover:bg-indigo-50 text-gray-700 hover:text-indigo-700 flex items-center justify-between transition-colors ${compact ? 'text-xs' : 'text-sm'}`}
+                                className={`w-full text-left px-4 py-2.5 hover:bg-red-50 text-gray-900 hover:text-red-700 flex items-center justify-between transition-colors font-bold ${compact ? 'text-xs' : 'text-sm'}`}
                                 onClick={() => handleSelect(option)}
                             >
                                 <span>{option}</span>
-                                {value === option && <Check size={16} className="text-indigo-600" />}
+                                {value === option && <Check size={16} className="text-red-600" />}
                             </button>
                         ))
                     ) : (

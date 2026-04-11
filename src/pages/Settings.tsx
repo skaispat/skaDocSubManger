@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { User, Bell, Shield, Plus, X, Check, Search } from 'lucide-react';
 import useAuthStore, { User as UserType } from '../store/authStore';
-import useHeaderStore from '../store/headerStore';
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../components/ConfirmModal';
 
 const Settings = () => {
-  const { setTitle } = useHeaderStore();
   const { users, addUser, updateUser, deleteUser, currentUser } = useAuthStore();
 
-  useEffect(() => {
-    setTitle('Settings');
-  }, [setTitle]);
   const [activeTab, setActiveTab] = useState<'profile' | 'users'>('profile');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserType | null>(null);
@@ -28,7 +23,7 @@ const Settings = () => {
     permissions: []
   });
 
-  const availablePermissions = ['Dashboard', 'Document', 'Subscription', 'Loan', 'Calendar', 'Master', 'Settings'];
+  const availablePermissions = ['Dashboard', 'Document', 'Subscription', 'Calendar', 'Master', 'Settings'];
 
   const openAddUserModal = () => {
     setEditingUser(null);

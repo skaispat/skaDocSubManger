@@ -1,7 +1,6 @@
 import React from "react";
 import { Bell, User } from "lucide-react";
 import useAuthStore from "../store/authStore";
-import useHeaderStore from "../store/headerStore";
 
 interface HeaderProps {
   children?: React.ReactNode;
@@ -9,42 +8,29 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ children }) => {
   const { currentUser } = useAuthStore();
-  const { title } = useHeaderStore();
 
   return (
-    <header className="bg-white border-b border-gray-200 shadow-sm relative z-10">
-      <div className="flex justify-between items-center px-3 py-2 sm:px-4 sm:py-2.5">
+    <header className="bg-white border-b border-gray-100 relative z-10 font-sans">
+      <div className="flex justify-between items-center px-4 py-2">
         <div className="flex items-center gap-3">
           {children}
-          
-           {/* Mobile Title / Dynamic Title */}
-           <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-bold text-gray-800 truncate">
-                {title || (
-                  <>
-                    Document & Subscription <span className="text-red-600">Manager</span>
-                  </>
-                )}
-              </h1>
-           </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <Bell
-              size={20}
-              className="text-gray-500"
-            />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+        
+        <div className="flex items-center gap-4">
+          <button className="relative p-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <Bell size={18} className="text-gray-400" />
+            <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-600 rounded-full"></span>
           </button>
-          <div className="flex items-center space-x-3 pl-4 border-l border-gray-100">
+          
+          <div className="flex items-center gap-3 h-8 pl-4 border-l border-gray-100">
             <div className="hidden md:block text-right">
-              <p className="text-sm font-semibold text-gray-700">{currentUser?.id || "Guest"}</p>
-              <p className="text-xs text-gray-500 capitalize">
-                {currentUser?.role || "User"}
+              <p className="text-xs font-bold text-gray-900 uppercase tracking-tight">{currentUser?.id || "Admin"}</p>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">
+                {currentUser?.role || "System"}
               </p>
             </div>
-             <div className="flex justify-center items-center w-10 h-10 bg-red-50 border border-red-100 rounded-full shadow-sm">
-              <User size={20} className="text-red-600" />
+            <div className="w-8 h-8 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center text-red-600">
+              <User size={16} />
             </div>
           </div>
         </div>

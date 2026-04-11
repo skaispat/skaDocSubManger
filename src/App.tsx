@@ -11,25 +11,18 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import Settings from "./pages/Settings";
-import ResourceManager from "./pages/ResourceManager";
-import DocumentRenewal from "./pages/document/Renewal";
-import SubscriptionRenewal from "./pages/subscription/Renewal";
+// Renewals
+import RenewalsManager from "./pages/renewals/RenewalsManager";
 
 // Document Pages
-import AllDocuments from "./pages/document/AllDocuments";
-import SharedDocuments from "./pages/document/Shared";
+import DocumentsManager from "./pages/document/DocumentsManager";
+import DocumentRenewal from "./pages/document/Renewal";
 
 // Subscription Pages
 import AllSubscriptions from "./pages/subscription/AllSubscriptions";
 import SubscriptionApproval from "./pages/subscription/Approval";
 import SubscriptionPayment from "./pages/subscription/Payment";
 
-// Loan Pages
-import AllLoans from "./pages/loan/AllLoans";
-import LoanForeclosure from "./pages/loan/Foreclosure";
-import LoanNOC from "./pages/loan/NOC";
-
-import MasterPage from "./pages/master/MasterPage";
 
 // Main Router Configuration
 function App() {
@@ -48,34 +41,23 @@ function App() {
           }
         >
           <Route index element={<Dashboard />} />
-          
+
           {/* Document Routes */}
           <Route path="document">
-            <Route index element={<Navigate to="all" replace />} />
-            <Route path="all" element={<AllDocuments />} />
+            <Route index element={<DocumentsManager />} />
             <Route path="renewal" element={<DocumentRenewal />} />
-            <Route path="shared" element={<SharedDocuments />} />
           </Route>
+
+          {/* Renewal Routes */}
+          <Route path="renewal" element={<RenewalsManager />} />
 
           {/* Subscription Routes */}
           <Route path="subscription">
-             <Route index element={<Navigate to="all" replace />} />
-             <Route path="all" element={<AllSubscriptions />} />
-             <Route path="approval" element={<SubscriptionApproval />} />
-             <Route path="payment" element={<SubscriptionPayment />} />
-             <Route path="renewal" element={<SubscriptionRenewal />} />
+            <Route index element={<Navigate to="all" replace />} />
+            <Route path="all" element={<AllSubscriptions />} />
+            <Route path="approval" element={<SubscriptionApproval />} />
+            <Route path="payment" element={<SubscriptionPayment />} />
           </Route>
-
-          {/* Loan Routes */}
-          <Route path="loan">
-             <Route index element={<Navigate to="all" replace />} />
-             <Route path="all" element={<AllLoans />} />
-             <Route path="foreclosure" element={<LoanForeclosure />} />
-             <Route path="noc" element={<LoanNOC />} />
-          </Route>
-
-          <Route path="master" element={<MasterPage />} />
-          <Route path="resource-manager" element={<ResourceManager />} />
 
           <Route path="settings" element={<Settings />} />
         </Route>

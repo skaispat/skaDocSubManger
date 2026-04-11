@@ -4,7 +4,8 @@
 
 @layer base {
   html {
-    font-size: 17px;
+    font-size: 16px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
 
@@ -26,9 +27,7 @@
   width: 0px;
   height: 0px;
   background: transparent;
-  /* make it invisible */
   display: none;
-  /* safeguard */
 }
 
 ::-webkit-scrollbar-track {

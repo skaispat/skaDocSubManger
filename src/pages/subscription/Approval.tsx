@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
 import useDataStore, { SubscriptionItem } from '../../store/dataStore';
-import useHeaderStore from '../../store/headerStore';
 import { CheckCircle, FileText, X, Save, Search } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatDate } from '../../utils/dateFormatter';
@@ -20,13 +19,9 @@ const SubscriptionApproval = () => {
     // I'll assume NO and I will add it to dataStore in a separate step if needed. 
     // But for this file I'll write the logic.
     
-    const { setTitle } = useHeaderStore();
     const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
     
     // Update Header
-    useEffect(() => {
-        setTitle('Subscription Approval');
-    }, [setTitle]);
 
     // Modal State
     const [selectedSub, setSelectedSub] = useState<SubscriptionItem | null>(null);

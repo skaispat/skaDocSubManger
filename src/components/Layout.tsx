@@ -8,55 +8,49 @@ const Layout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-[100dvh] bg-gray-50 font-sans overflow-hidden">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-20 bg-black bg-opacity-50 transition-opacity lg:hidden"
+        <div
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Desktop and Mobile */}
       <div className={`
-        fixed top-0 left-0 h-[100dvh] z-50 w-72 transform bg-indigo-900 transition duration-300 ease-in-out lg:static lg:h-auto lg:translate-x-0
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        fixed top-0 left-0 h-full z-50 w-64 transform bg-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0
+        ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
       `}>
         <Sidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main content container */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         <Header>
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-md text-gray-400 lg:hidden hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+            className="p-2 rounded-lg text-gray-400 lg:hidden hover:bg-gray-100 transition-colors"
           >
-            <span className="sr-only">Open sidebar</span>
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </button>
         </Header>
-        
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-2 sm:p-3">
-          <div className="container mx-auto h-full flex flex-col">
-            <Outlet />
-          </div>
+
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
+          <Outlet />
         </main>
 
-        {/* Footer */}
-        <footer className="bg-white border-t border-gray-200 py-2 sm:py-3 px-4">
-          <div className="container mx-auto text-center text-xs sm:text-sm text-gray-600">
-            Powered by{' '}
-            <a 
-              href="https://www.botivate.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-indigo-600 hover:text-indigo-800 font-medium"
-            >
-              Botivate
-            </a>
+        {/* Minimal Footer */}
+        {/* <footer className="bg-white border-t border-gray-100 py-2 px-6">
+          <div className="flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            <span>&copy; 2026 Docs Manager</span>
+            <div className="flex gap-4">
+                <span className="text-gray-300">|</span>
+                <span className="text-gray-900">v1.2.0</span>
+            </div>
           </div>
-        </footer>
+        </footer> */}
       </div>
     </div>
   );
