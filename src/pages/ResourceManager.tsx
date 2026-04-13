@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, CreditCard, LayoutGrid } from 'lucide-react';
+import { FileText, CreditCard } from 'lucide-react';
 import AllDocuments from './document/CompanyDocuments';
 import AllSubscriptions from './subscription/AllSubscriptions';
 import { useEffect } from 'react';
