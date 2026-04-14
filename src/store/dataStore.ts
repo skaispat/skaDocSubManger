@@ -15,6 +15,11 @@ export interface DocumentItem {
     date: string;
     status: string;
     validityPeriod?: string;
+    brandName?: string;
+    serialNo?: string;
+    certificateNo?: string;
+    location?: string;
+    calibrationDate?: string;
 }
 
 export interface SubscriptionItem {

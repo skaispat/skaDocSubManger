@@ -38,8 +38,8 @@ const DocumentsManager = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`flex items-center gap-2 px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === tab.id
-                                    ? 'bg-red-600 text-white shadow-sm'
-                                    : 'text-gray-900 hover:text-red-600 hover:bg-red-50'
+                                ? 'bg-red-600 text-white shadow-sm'
+                                : 'text-gray-900 hover:text-red-600 hover:bg-red-50'
                                 }`}
                         >
                             {tab.icon}

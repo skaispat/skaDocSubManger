@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import useDataStore, { DocumentItem, RenewalItem } from '../../store/dataStore';
-import { Search, X, Check, Calendar, RotateCcw, Upload, Eye, FileText, History, CheckCircle, Download } from 'lucide-react';
+import { Search, ShieldCheck, X, Check, Calendar, RotateCcw, Upload, Eye, FileText, History, CheckCircle, Download } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatDate } from '../../utils/dateFormatter';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -9,13 +9,13 @@ import RenewalHistoryModal from '../../components/RenewalHistoryModal';
 import { documentService } from '../../api/documentService';
 import { storageService } from '../../api/storageService';
 
-const CompanyRenewal = () => {
+const ComplianceRenewal = () => {
     const { updateDocument, addRenewalHistory } = useDataStore();
 
     const [activeTab, setActiveTab] = useState<'all' | 'overdue' | 'critical'>('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [companyDocs, setCompanyDocs] = useState<any[]>([]);
+    const [complianceDocs, setComplianceDocs] = useState<any[]>([]);
 
     // Modal State
     const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
@@ -56,13 +56,13 @@ const CompanyRenewal = () => {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const data = await documentService.getAll('company_documents');
+            const data = await documentService.getAll('compliance_documents');
             const filtered = data.filter(item =>
                 item.renewable?.toString().toLowerCase() === 'yes'
             );
-            setCompanyDocs(filtered);
+            setComplianceDocs(filtered);
         } catch (error) {
-            toast.error("Failed to sync company documents");
+            toast.error("Failed to sync compliance records");
         } finally {
             setIsLoading(false);
         }
@@ -78,11 +78,10 @@ const CompanyRenewal = () => {
     const criticalThreshold = new Date(today);
     criticalThreshold.setDate(today.getDate() + 30);
 
-    const baseDocs = companyDocs;
+    const baseDocs = complianceDocs;
 
     const searchedDocs = baseDocs.filter(doc =>
         (doc.document_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (doc.document_type?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (doc.id_no?.toString().toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
 
@@ -124,7 +123,7 @@ const CompanyRenewal = () => {
         setSelectedDoc(doc);
         setIsLoading(true);
         try {
-            const history = await documentService.getRenewalHistory('renew_company_doc', doc.id_no);
+            const history = await documentService.getRenewalHistory('renew_compliance_doc', doc.id_no);
             setHistoryData(history);
             setIsHistoryOpen(true);
         } catch (error) {
@@ -154,7 +153,7 @@ const CompanyRenewal = () => {
 
     const handleDownload = (fileUrl: string | undefined, fileName: string | null) => {
         if (!fileUrl) {
-            setAlertMessage("Document link is not available.");
+            setAlertMessage("Compliance document file is not available.");
             setShowAlert(true);
             return;
         }
@@ -193,7 +192,7 @@ const CompanyRenewal = () => {
                 finalDocView = finalDocView ? `${finalDocView},${newPaths}` : newPaths;
             }
 
-            // 1. Log to history table: renew_company_doc
+            // 1. Log to history table: renew_compliance_doc
             const renewalData = {
                 doc_id: selectedDoc.id_no,
                 document_name: selectedDoc.document_name,
@@ -203,7 +202,7 @@ const CompanyRenewal = () => {
                 validity_period: validityPeriod
             };
 
-            await documentService.logRenewal('renew_company_doc', renewalData);
+            await documentService.logRenewal('renew_compliance_doc', renewalData);
 
             // 2. Update primary record
             const updates: any = {
@@ -214,17 +213,16 @@ const CompanyRenewal = () => {
                 validity_period: validityPeriod
             };
 
-            const success = await documentService.update('company_documents', selectedDoc.id_no, updates);
-
+            const success = await documentService.update('compliance_documents', selectedDoc.id_no, updates);
             if (success) {
-                toast.success("Renewal processed and history logged");
+                toast.success("Compliance history logged and record updated");
                 fetchData();
                 handleCloseRenewal();
             } else {
                 toast.error("Failed to update database");
             }
-        } catch (err) {
-            console.error("Renewal Error:", err);
+        } catch (error) {
+            console.error("Compliance Renewal Error:", error);
             toast.error("An error occurred");
         } finally {
             setIsLoading(false);
@@ -237,7 +235,7 @@ const CompanyRenewal = () => {
             <div className="flex flex-col gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="min-h-[32px] flex items-center">
-                        <h2 className="text-sm sm:text-base font-bold text-gray-800 uppercase tracking-widest">Company Renewals</h2>
+                        <h2 className="text-sm sm:text-base font-bold text-gray-800 uppercase tracking-widest">Compliance Renewals</h2>
                     </div>
 
                     <div className="flex bg-gray-50 p-1.5 rounded-lg border border-gray-200 w-full sm:w-auto">
@@ -246,7 +244,7 @@ const CompanyRenewal = () => {
                             className={`flex-1 sm:flex-none px-6 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'all' ? 'bg-white text-gray-950 shadow-md' : 'text-gray-500 hover:text-gray-900'
                                 }`}
                         >
-                            All <span className="ml-1 opacity-40">{companyDocs.length}</span>
+                            All <span className="ml-1 opacity-40">{complianceDocs.length}</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('critical')}
@@ -269,7 +267,7 @@ const CompanyRenewal = () => {
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                     <input
                         type="text"
-                        placeholder="SEARCH ACROSS COMPANY RENEWALS..."
+                        placeholder="SEARCH ACROSS COMPLIANCE RENEWALS..."
                         className="pl-12 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-red-50 bg-gray-50 text-sm font-bold text-gray-900 placeholder:text-gray-400 transition-all uppercase tracking-wide"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -283,21 +281,18 @@ const CompanyRenewal = () => {
                         <thead>
                             <tr className="bg-red-50 shadow-sm border-b border-gray-100 text-[10px] md:text-[11px] uppercase text-gray-950 font-black tracking-widest">
                                 <th className="px-5 py-4 w-32 text-center rounded-tl-xl">Actions</th>
-                                <th className="px-5 py-3">Document Name</th>
+                                <th className="px-5 py-3">Document Title</th>
                                 <th className="px-5 py-3 text-center">Renewal Date</th>
                                 <th className="px-5 py-3 text-center">Documents</th>
                                 <th className="px-5 py-3 text-center rounded-tr-xl">Renewal History</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {isLoading ? (
-                                <tr key="loading-desktop"><td colSpan={7} className="p-20 text-center text-gray-400">Syncing data...</td></tr>
-                            ) : displayDocs.length > 0 ? displayDocs.map((doc, index) => {
+                            {isLoading ? (<tr key="loading-desktop"><td colSpan={5} className="p-20 text-center text-gray-400">Syncing data...</td></tr>) : displayDocs.length > 0 ? displayDocs.map((doc, index) => {
                                 const isOverdue = doc.renewable_date && new Date(doc.renewable_date) < today;
                                 const isCritical = !isOverdue && doc.renewable_date && new Date(doc.renewable_date) <= criticalThreshold;
-
                                 return (
-                                    <tr key={doc.id_no || `doc-${index}`} className="hover:bg-gray-50/50 transition-colors">
+                                    <tr key={doc.id_no || `comp-${index}`} className="hover:bg-gray-50/50 transition-colors">
                                         <td className="px-5 py-3 text-center">
                                             <button onClick={() => handleOpenRenewal(doc)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-red-700 transition-all shadow-sm">
                                                 <RotateCcw size={14} /> Renew
@@ -326,38 +321,25 @@ const CompanyRenewal = () => {
                                         </td>
                                     </tr>
                                 );
-                            }) : (
-                                <tr key="empty-desktop">
-                                    <td colSpan={7} className="p-20 text-center text-gray-400">
-                                        <Check size={40} className="mx-auto mb-2 text-green-200" />
-                                        <p className="font-medium">No renewals found in this category</p>
-                                    </td>
-                                </tr>
-                            )}
+                            }) : (<tr key="empty-desktop"><td colSpan={5} className="p-20 text-center text-gray-400"><ShieldCheck size={40} className="mx-auto mb-2 text-green-200" /><p className="font-medium">All compliance documents are current</p></td></tr>)}
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            {/* Mobile View */}
             <div className="md:hidden space-y-4">
                 {isLoading ? (
                     <div key="loading-mobile" className="py-20 text-center text-gray-400">Syncing data...</div>
                 ) : displayDocs.length > 0 ? displayDocs.map((doc, index) => {
                     const isOverdue = doc.renewable_date && new Date(doc.renewable_date) < today;
                     const isCritical = !isOverdue && doc.renewable_date && new Date(doc.renewable_date) <= criticalThreshold;
-
                     return (
-                        <div key={doc.id_no || `doc-mobile-${index}`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                        <div key={doc.id_no || `comp-mobile-${index}`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
                             <div className="flex justify-between items-start">
-                                <div>
-                                    <h3 className="font-bold text-gray-900">{doc.document_name}</h3>
-                                </div>
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${isOverdue ? 'text-red-700 bg-red-50' : isCritical ? 'text-amber-700 bg-amber-50' : 'text-green-700 bg-green-50'}`}>
-                                    {isOverdue ? 'Overdue' : isCritical ? 'Critical' : 'Healthy'}
-                                </span>
+                                <div><h3 className="font-bold text-gray-900">{doc.document_name}</h3></div>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${isOverdue ? 'text-red-700 bg-red-50' : isCritical ? 'text-amber-700 bg-amber-50' : 'text-green-700 bg-green-50'}`}>{isOverdue ? 'Overdue' : isCritical ? 'Critical' : 'Healthy'}</span>
                             </div>
-                             <div className="space-y-3 pt-3 border-t border-gray-50 font-sans">
+                            <div className="space-y-3 pt-3 border-t border-gray-50 font-sans">
                                 <div className="flex justify-between items-center text-xs">
                                     <div>
                                         <p className="font-black text-gray-400 uppercase tracking-tighter text-[9px]">Renewal Date</p>
@@ -378,22 +360,13 @@ const CompanyRenewal = () => {
                             </div>
                         </div>
                     );
-                }) : (
-                    <div key="empty-mobile" className="py-10 text-center text-gray-400">
-                        <Check size={40} className="mx-auto mb-2 text-green-100" />
-                        <p className="text-xs">No pending renewals</p>
-                    </div>
-                )}
+                }) : (<div key="empty-mobile" className="py-10 text-center text-gray-400"><ShieldCheck size={40} className="mx-auto mb-2 text-green-100" /><p className="text-xs">No compliance renewals required</p></div>)}
             </div>
 
-            {/* Renewal Modal */}
             {isRenewalModalOpen && selectedDoc && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-scale-in">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                            <h3 className="text-lg font-bold text-gray-900">Renew Document</h3>
-                            <button onClick={handleCloseRenewal} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                        </div>
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50"><h3 className="text-lg font-bold text-gray-900">Renew Compliance Doc</h3><button onClick={handleCloseRenewal} className="text-gray-400 hover:text-gray-600"><X size={20} /></button></div>
                         <form onSubmit={handleSaveRenewal} className="p-6 space-y-4">
                             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-[11px] space-y-2">
                                 <div className="flex justify-between">
@@ -406,21 +379,16 @@ const CompanyRenewal = () => {
                                 </div>
                             </div>
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-gray-700">Schedule next?</span>
-                                    <button type="button" onClick={() => setAgainRenewal(!againRenewal)} className={`w-10 h-5 flex items-center p-1 rounded-full transition-colors ${againRenewal ? 'bg-red-600' : 'bg-gray-300'}`}>
-                                        <div className={`w-3 h-3 bg-white rounded-full transform transition-transform ${againRenewal ? 'translate-x-5' : 'translate-x-0'}`} />
-                                    </button>
-                                </div>
+                                <div className="flex items-center justify-between"><span className="text-sm font-medium text-gray-700">Schedule next?</span><button type="button" onClick={() => setAgainRenewal(!againRenewal)} className={`w-10 h-5 flex items-center p-1 rounded-full transition-colors ${againRenewal ? 'bg-red-600' : 'bg-gray-300'}`}><div className={`w-3 h-3 bg-white rounded-full transform transition-transform ${againRenewal ? 'translate-x-5' : 'translate-x-0'}`} /></button></div>
                                 {againRenewal && (
-                                    <div className="space-y-4">
+                                    <div className="space-y-4 animate-fade-in">
                                         <div>
                                             <label className="block text-[11px] font-black text-gray-700 uppercase tracking-wider mb-1">Next Renewal Date</label>
-                                            <input type="date" required className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-100 font-bold text-gray-900" value={nextRenewalDate} onChange={e => setNextRenewalDate(e.target.value)} />
+                                            <input type="date" required className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-100 font-bold text-gray-950" value={nextRenewalDate} onChange={e => setNextRenewalDate(e.target.value)} />
                                         </div>
                                         <div>
                                             <label className="block text-[11px] font-black text-gray-700 uppercase tracking-wider mb-1">Validity Period</label>
-                                            <input type="text" placeholder="e.g. 1 Year, 6 Months" className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-100 font-bold text-gray-900" value={validityPeriod} onChange={e => setValidityPeriod(e.target.value)} />
+                                            <input type="text" placeholder="e.g. 1 Year, 6 Months" className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-100 font-bold text-gray-950" value={validityPeriod} onChange={e => setValidityPeriod(e.target.value)} />
                                         </div>
                                         <div>
                                             <label className="block text-[11px] font-black text-gray-950 uppercase tracking-widest mb-1">Upload Documents</label>
@@ -452,15 +420,11 @@ const CompanyRenewal = () => {
                                     </div>
                                 )}
                             </div>
-                            <div className="flex gap-3 pt-4">
-                                <button type="button" onClick={handleCloseRenewal} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50">Cancel</button>
-                                <button type="submit" disabled={isLoading} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-all">{isLoading ? 'Saving...' : 'Confirm'}</button>
-                            </div>
+                            <div className="flex gap-3 pt-4"><button type="button" onClick={handleCloseRenewal} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50">Cancel</button><button type="submit" className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-all">Confirm</button></div>
                         </form>
                     </div>
                 </div>
             )}
-
             <ConfirmModal isOpen={showAlert} onClose={() => setShowAlert(false)} title="Alert" message={alertMessage} confirmText="Close" type="alert" />
             <PreviewModal isOpen={isPreviewOpen} onClose={() => setIsPreviewOpen(false)} files={previewData.files} documentName={previewData.name} />
             <RenewalHistoryModal 
@@ -474,4 +438,4 @@ const CompanyRenewal = () => {
     );
 };
 
-export default CompanyRenewal;
+export default ComplianceRenewal;

@@ -16,6 +16,7 @@ export const authService = {
 
     return {
       id: data.username,
+      fullName: data.full_name,
       role: data.role as 'admin' | 'user',
       permissions: data.permissions || [],
     };
@@ -32,6 +33,7 @@ export const authService = {
 
     return data.map(u => ({
       id: u.username,
+      fullName: u.full_name,
       role: u.role,
       permissions: u.permissions || [],
     }));

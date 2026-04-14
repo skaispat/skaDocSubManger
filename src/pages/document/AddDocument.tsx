@@ -240,7 +240,7 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose, initialCateg
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto font-sans">
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto font-sans">
             <div className="relative w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                 {/* Header */}
                 <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-gray-50">
@@ -353,18 +353,6 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose, initialCateg
                                                     onChange={e => handleChange(entry.id, 'document_name', e.target.value)}
                                                 />
                                             </div>
-                                            {entry.category === 'Compliance' && (
-                                                <div className="space-y-1.5">
-                                                    <label className="text-xs font-bold text-gray-900 uppercase tracking-wider ml-1">Document Type</label>
-                                                    <input
-                                                        type="text"
-                                                        className="w-full p-2.5 rounded-xl bg-white border border-gray-300 focus:border-red-500 transition-colors outline-none text-base font-bold text-gray-900"
-                                                        value={entry.document_type}
-                                                        onChange={e => handleChange(entry.id, 'document_type', e.target.value)}
-                                                        placeholder="e.g. Legal, HR"
-                                                    />
-                                                </div>
-                                            )}
                                         </>
                                     )}
 

@@ -17,8 +17,8 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
-        toast.error("Please fill all fields");
-        return;
+      toast.error("Please fill all fields");
+      return;
     }
 
     setIsLoading(true);
@@ -49,9 +49,8 @@ const Login = () => {
             </div>
 
             <h2 className="text-2xl font-black text-gray-900 mb-1 tracking-tight uppercase">
-              Management Portal
+              Document Manager
             </h2>
-            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Document & Subscription</p>
           </div>
 
           {/* Form section */}
@@ -129,7 +128,7 @@ const Login = () => {
                 className={`w-full flex justify-center py-4 px-4 border border-transparent text-sm font-black rounded-2xl text-white bg-red-600 hover:bg-black focus:outline-none focus:ring-4 focus:ring-red-500 transition-all duration-300 transform active:scale-95 shadow-xl shadow-red-200 flex items-center gap-2 uppercase tracking-widest ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 {isLoading ? (
-                    <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : null}
                 {isLoading ? 'Processing...' : 'Secure Login'}
               </button>

@@ -109,33 +109,24 @@ const AllSubscriptions = () => {
             </div> */}
 
             {/* Actions & Search */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className="relative flex-1 sm:w-80">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <input
-                            type="text"
-                            placeholder="SEARCH SUBSCRIPTIONS..."
-                            className="pl-9 pr-4 py-2 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-100 bg-gray-50 text-xs font-bold text-gray-900 placeholder:text-gray-400 placeholder:font-bold"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <button
-                        onClick={fetchData}
-                        disabled={isLoading}
-                        className={`p-2 bg-white border border-gray-200 text-gray-600 hover:text-red-600 rounded-lg transition-all ${isLoading ? 'animate-spin' : ''}`}
-                    >
-                        <RefreshCw size={18} />
-                    </button>
+            <div className="flex flex-row justify-between items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <div className="relative flex-1 sm:max-w-xl md:max-w-2xl transition-all">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <input
+                        type="text"
+                        placeholder="SEARCH SUBSCRIPTIONS..."
+                        className="pl-9 pr-4 py-2 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-100 bg-gray-50 text-xs font-bold text-gray-900 placeholder:text-gray-400 placeholder:font-bold"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
-
                 <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition-all text-xs font-bold uppercase tracking-wider"
+                    className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all text-xs font-bold uppercase tracking-wider whitespace-nowrap shadow-sm shrink-0"
                 >
-                    <Plus size={16} />
-                    New Subscription
+                    <Plus className="h-4 w-4" />
+                    <span className="hidden sm:inline">Add Subscription</span>
+                    <span className="sm:hidden">Add</span>
                 </button>
             </div>
 
@@ -156,13 +147,13 @@ const AllSubscriptions = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {isLoading ? (
-                                <tr>
+                                <tr key="loading-desktop">
                                     <td colSpan={7} className="p-20 text-center">
                                         <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
                                     </td>
                                 </tr>
-                            ) : filteredData.map((item) => (
-                                <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                            ) : filteredData.map((item, index) => (
+                                <tr key={item.id || `sub-${index}`} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="px-5 py-4 text-xs font-medium text-gray-500">{item.sn}</td>
                                     <td className="px-5 py-4">
                                         <div>
@@ -189,10 +180,10 @@ const AllSubscriptions = () => {
                                     </td>
                                     <td className="px-5 py-4">
                                         <div className="flex justify-end items-center gap-2">
-                                            <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg">
+                                            <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                                                 <Edit size={16} />
                                             </button>
-                                            <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg">
+                                            <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                                                 <Trash2 size={16} />
                                             </button>
                                         </div>
@@ -207,11 +198,11 @@ const AllSubscriptions = () => {
             {/* Mobile Card View */}
             <div className="md:hidden space-y-4">
                 {isLoading ? (
-                    <div className="py-10 text-center">
+                    <div key="loading-mobile" className="py-10 text-center">
                         <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
                     </div>
-                ) : filteredData.map((item) => (
-                    <div key={item.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-3">
+                ) : filteredData.map((item, index) => (
+                    <div key={item.id || `sub-mobile-${index}`} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-3">
                         <div className="flex justify-between items-start">
                             <div>
                                 <h4 className="font-bold text-gray-900">{item.subscriptionName}</h4>
@@ -230,10 +221,10 @@ const AllSubscriptions = () => {
                         <div className="flex items-center justify-between pt-2 border-t border-gray-50">
                             <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px] font-bold uppercase">{item.frequency}</span>
                             <div className="flex gap-2">
-                                <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600">
+                                <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                                     <Edit size={16} />
                                 </button>
-                                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600">
+                                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                     <Trash2 size={16} />
                                 </button>
                             </div>

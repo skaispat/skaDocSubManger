@@ -14,7 +14,8 @@ export const subscriptionService = {
   async getAll(): Promise<Subscription[]> {
     const { data, error } = await supabase
       .from('subscription')
-      .select('*');
+      .select('*')
+      .order('id_no', { ascending: false });
 
     if (error) {
       return [];

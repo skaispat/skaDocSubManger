@@ -24,7 +24,7 @@ const ProjectApproval = () => {
             const mappedData: DocumentItem[] = data.map(item => ({
                 id: item.id_no,
                 sn: item.id_no,
-                companyName: item.document_name, 
+                companyName: item.document_name,
                 documentType: 'Approval',
                 category: 'Project',
                 documentName: item.document_name,
@@ -48,7 +48,7 @@ const ProjectApproval = () => {
     }, []);
 
     const filteredData = documents.filter(item => {
-        const matchesSearch = 
+        const matchesSearch =
             (item.documentName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
             (item.companyName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
             (item.sn?.toLowerCase() || '').includes(searchTerm.toLowerCase());
@@ -101,7 +101,7 @@ const ProjectApproval = () => {
 
     const confirmDelete = async () => {
         if (docToDelete) {
-             const success = await documentService.delete('project_approval', docToDelete);
+            const success = await documentService.delete('project_approval', docToDelete);
             if (success) {
                 deleteDocument(docToDelete);
                 if (selectedIds.has(docToDelete)) {
@@ -209,26 +209,26 @@ const ProjectApproval = () => {
                                             onChange={toggleAll}
                                         />
                                     </th>
-                                    <th className="px-4 py-4 w-14 text-center italic opacity-60">Info</th>
+                                    <th className="px-4 py-4 w-14 text-center italic opacity-60">Share</th>
                                     <th className="px-4 py-4 w-24 text-center">Action</th>
-                                    <th className="px-4 py-4">Serial Reference</th>
+                                    {/* <th className="px-4 py-4">Serial Reference</th> */}
                                     <th className="px-4 py-4">Project Name</th>
-                                    <th className="px-4 py-4">Department Category</th>
+                                    {/* <th className="px-4 py-4">Department Category</th> */}
                                     <th className="px-4 py-4 text-center">Validity</th>
-                                    <th className="px-4 py-4 text-center">Valid Until</th>
+                                    <th className="px-4 py-4 text-center">Renewal Date</th>
                                     <th className="px-4 py-4 text-center">Status</th>
                                     <th className="px-4 py-4 text-center">View</th>
                                 </tr>
                             </thead>
                             <tbody className="text-xs md:text-sm divide-y divide-gray-100">
                                 {isLoading ? (
-                                    <tr>
+                                    <tr key="loading-desktop">
                                         <td colSpan={10} className="p-20 text-center">
                                             <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
                                         </td>
                                     </tr>
-                                ) : filteredData.map((item) => (
-                                    <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedIds.has(item.id) ? 'bg-red-50/20' : ''}`}>
+                                ) : filteredData.map((item, index) => (
+                                    <tr key={item.id || `proj-${index}`} className={`hover:bg-gray-50/50 transition-colors ${selectedIds.has(item.id) ? 'bg-red-50/20' : ''}`}>
                                         <td className="px-4 py-3 text-center">
                                             <input
                                                 type="checkbox"
@@ -241,7 +241,7 @@ const ProjectApproval = () => {
                                             <DropdownMenu.Root>
                                                 <DropdownMenu.Trigger asChild>
                                                     <button className="p-1.5 text-gray-400 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors">
-                                                        <MoreHorizontal size={16} />
+                                                        <Share2 size={16} />
                                                     </button>
                                                 </DropdownMenu.Trigger>
                                                 <DropdownMenu.Portal>
@@ -266,18 +266,18 @@ const ProjectApproval = () => {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex justify-center items-center gap-2">
-                                                <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg">
+                                                <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                                                     <Edit size={14} />
                                                 </button>
-                                                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg">
+                                                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                                                     <Trash2 size={14} />
                                                 </button>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 font-medium text-gray-900">{item.sn}</td>
+                                        {/* <td className="px-4 py-3 font-medium text-gray-900">{item.sn}</td> */}
                                         <td className="px-4 py-3 text-gray-900 font-bold">{item.documentName}</td>
-                                        <td className="px-4 py-3 text-gray-600 text-xs font-medium">{item.documentType}</td>
-                                        <td className="px-4 py-3 text-center text-gray-500 font-bold uppercase italic text-[10px]">{item.validityPeriod}</td>
+                                        {/* <td className="px-4 py-3 text-gray-600 text-xs font-medium">{item.documentType}</td> */}
+                                        <td className="px-4 py-3 text-center text-gray-600 font-bold uppercase text-[11px]">{item.validityPeriod}</td>
                                         <td className="px-4 py-3 text-center text-gray-900 font-medium">{formatDate(item.renewalDate)}</td>
                                         <td className="px-4 py-3 text-center">
                                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${item.status === 'Active' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -286,7 +286,7 @@ const ProjectApproval = () => {
                                         </td>
                                         <td className="px-4 py-3 text-center">
                                             {item.file ? (
-                                                <button onClick={() => handlePreview(item.file, item.documentName)} className="text-red-600 hover:text-red-700 transition-colors" title="View Document">
+                                                <button onClick={() => handlePreview(item.file, item.documentName)} className="text-green-600 hover:text-green-700 transition-colors" title="View Document">
                                                     <Eye size={18} />
                                                 </button>
                                             ) : <span className="text-gray-300">-</span>}
@@ -301,11 +301,11 @@ const ProjectApproval = () => {
                 {/* Mobile View */}
                 <div className="md:hidden grid gap-4">
                     {isLoading ? (
-                        <div className="py-10 text-center">
-                             <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
+                        <div key="loading-mobile" className="py-10 text-center">
+                            <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
                         </div>
-                    ) : filteredData.map((item) => (
-                        <div key={item.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                    ) : filteredData.map((item, index) => (
+                        <div key={item.id || `proj-mobile-${index}`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="font-bold text-gray-900">{item.documentName}</h3>
@@ -316,17 +316,23 @@ const ProjectApproval = () => {
                                 </span>
                             </div>
                             <div className="flex justify-between items-center text-xs text-gray-500 pt-2 border-t border-gray-50">
-                                <span>ID: {item.sn}</span>
+                                <button
+                                    onClick={() => openShare('both', { id: item.id, name: item.documentName })}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 text-gray-900 border border-gray-100 rounded-lg hover:bg-gray-100 transition-all font-bold text-[10px] uppercase shadow-sm"
+                                >
+                                    <Share2 size={14} className="text-gray-400" />
+                                    Share
+                                </button>
                                 <div className="flex gap-2">
-                                     {item.file && (
-                                        <button onClick={() => handlePreview(item.file, item.documentName)} className="p-1.5 text-red-600">
+                                    {item.file && (
+                                        <button onClick={() => handlePreview(item.file, item.documentName)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
                                             <Eye size={18} />
                                         </button>
                                     )}
-                                    <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600">
+                                    <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                                         <Edit size={16} />
                                     </button>
-                                    <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600">
+                                    <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
@@ -354,7 +360,7 @@ const ProjectApproval = () => {
                 confirmText="Delete"
                 type="confirm"
             />
-             <ConfirmModal
+            <ConfirmModal
                 isOpen={showAlert}
                 onClose={() => setShowAlert(false)}
                 title="Alert"

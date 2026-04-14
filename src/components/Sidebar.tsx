@@ -94,21 +94,27 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   return (
     <div className="flex flex-col h-full bg-white text-gray-800 border-r border-gray-100 font-sans">
       {/* Header */}
-      <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-            DS
-          </div>
-          <div>
-             <h1 className="font-bold text-sm tracking-tight text-gray-900 uppercase">Manager</h1>
-             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">Docs & Sub</p>
-          </div>
-        </div>
+      <div className="relative flex justify-between items-center px-6 pt-6 pb-6 border-b border-gray-100 flex-shrink-0">
         {onClose && (
-          <button onClick={onClose} className="lg:hidden text-gray-400 hover:text-red-600 transition-colors">
-            <X size={20} />
+          <button 
+            onClick={onClose} 
+            className="absolute top-4 right-4 p-2 lg:hidden text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+          >
+            <X size={20} strokeWidth={3} />
           </button>
         )}
+        <div className="flex flex-col gap-1.5">
+          <img
+            src="/SKALogoEnglishBlack.svg"
+            alt="SKA Logo"
+            className="h-10 w-auto object-contain self-start"
+          />
+          <div>
+            <h1 className="font-bold text-[12px] tracking-wider text-gray-900 uppercase">
+              Document & Subscriptions.
+            </h1>
+          </div>
+        </div>
       </div>
 
       {/* Navigation */}

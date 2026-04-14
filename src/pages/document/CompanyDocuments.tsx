@@ -211,7 +211,7 @@ const AllDocuments = () => {
                                             onChange={toggleAll}
                                         />
                                     </th>
-                                    <th className="px-4 py-4 w-14 text-center italic opacity-60">Info</th>
+                                    <th className="px-4 py-4 w-14 text-center italic opacity-60">Share</th>
                                     <th className="px-4 py-4 w-24 text-center">Action</th>
                                     <th className="px-4 py-4">Document Title</th>
                                     <th className="px-4 py-4 text-center">Validity</th>
@@ -223,14 +223,14 @@ const AllDocuments = () => {
                             </thead>
                             <tbody className="text-xs md:text-sm divide-y divide-gray-100">
                                 {isLoading ? (
-                                    <tr>
+                                    <tr key="loading-desktop">
                                         <td colSpan={9} className="p-20 text-center">
                                             <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
                                             <p className="mt-2 text-xs font-bold text-gray-500 uppercase">Syncing...</p>
                                         </td>
                                     </tr>
-                                ) : filteredData.map((item) => (
-                                    <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedIds.has(item.id) ? 'bg-red-50/30' : ''}`}>
+                                ) : filteredData.map((item, index) => (
+                                    <tr key={item.id || `doc-${index}`} className={`hover:bg-gray-50/50 transition-colors ${selectedIds.has(item.id) ? 'bg-red-50/30' : ''}`}>
                                         <td className="px-4 py-3 text-center">
                                             <input
                                                 type="checkbox"
@@ -243,7 +243,7 @@ const AllDocuments = () => {
                                             <DropdownMenu.Root>
                                                 <DropdownMenu.Trigger asChild>
                                                     <button className="p-1.5 text-gray-400 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors">
-                                                        <MoreHorizontal size={16} />
+                                                        <Share2 size={16} />
                                                     </button>
                                                 </DropdownMenu.Trigger>
                                                 <DropdownMenu.Portal>
@@ -259,7 +259,7 @@ const AllDocuments = () => {
                                                             className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 rounded-md cursor-pointer outline-none uppercase"
                                                             onClick={() => openShare('whatsapp', { id: item.id, name: item.documentName })}
                                                         >
-                                                            <MessageCircle size={14} className="text-green-600" />
+                                                            s           <MessageCircle size={14} className="text-green-600" />
                                                             WhatsApp
                                                         </DropdownMenu.Item>
                                                     </DropdownMenu.Content>
@@ -268,16 +268,16 @@ const AllDocuments = () => {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex justify-center items-center gap-2">
-                                                <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg">
+                                                <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                                                     <Edit size={14} />
                                                 </button>
-                                                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg">
+                                                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                                                     <Trash2 size={14} />
                                                 </button>
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 text-gray-900 font-bold">{item.documentName}</td>
-                                        <td className="px-4 py-3 text-center text-gray-500 font-bold uppercase italic text-[10px]">{item.validityPeriod}</td>
+                                        <td className="px-4 py-3 text-center text-gray-500 font-bold uppercase text-[12px]">{item.validityPeriod}</td>
                                         <td className="px-4 py-3 text-center">
                                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.needsRenewal ? 'text-red-600 bg-red-50' : 'text-gray-400 bg-gray-50'}`}>
                                                 {item.needsRenewal ? 'Yes' : 'No'}
@@ -291,7 +291,7 @@ const AllDocuments = () => {
                                         </td>
                                         <td className="px-4 py-3 text-center">
                                             {item.file ? (
-                                                <button onClick={() => handlePreview(item.file, item.documentName)} className="text-red-600 hover:text-red-700 transition-colors" title="View Document">
+                                                <button onClick={() => handlePreview(item.file, item.documentName)} className="text-green-600 hover:text-green-700 transition-colors" title="View Document">
                                                     <Eye size={18} />
                                                 </button>
                                             ) : <span className="text-gray-300">-</span>}
@@ -312,11 +312,11 @@ const AllDocuments = () => {
                 {/* Mobile View */}
                 <div className="md:hidden grid gap-4">
                     {isLoading ? (
-                        <div className="py-10 text-center">
+                        <div key="loading-mobile" className="py-10 text-center">
                             <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
                         </div>
-                    ) : filteredData.map((item) => (
-                        <div key={item.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                    ) : filteredData.map((item, index) => (
+                        <div key={item.id || `doc-mobile-${index}`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="font-bold text-gray-900">{item.documentName}</h3>
@@ -327,17 +327,23 @@ const AllDocuments = () => {
                                 </span>
                             </div>
                             <div className="flex justify-between items-center text-xs text-gray-500 pt-2 border-t border-gray-50">
-                                <span>ID: {item.sn}</span>
+                                <button
+                                    onClick={() => openShare('both', { id: item.id, name: item.documentName })}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 text-gray-900 border border-gray-100 rounded-lg hover:bg-gray-100 transition-all font-bold text-[10px] uppercase shadow-sm"
+                                >
+                                    <Share2 size={14} className="text-gray-400" />
+                                    Share
+                                </button>
                                 <div className="flex gap-2">
                                     {item.file && (
-                                        <button onClick={() => handlePreview(item.file, item.documentName)} className="p-1.5 text-red-600">
+                                        <button onClick={() => handlePreview(item.file, item.documentName)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
                                             <Eye size={18} />
                                         </button>
                                     )}
-                                    <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600">
+                                    <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                                         <Edit size={16} />
                                     </button>
-                                    <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600">
+                                    <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                         <Trash2 size={16} />
                                     </button>
                                 </div>

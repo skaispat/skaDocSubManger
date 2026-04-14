@@ -135,7 +135,7 @@ const Settings = () => {
                                 </div>
                                 <div>
                                     <h2 className="text-lg font-bold text-gray-900">{currentUser?.id}</h2>
-                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-100 mt-1">
+                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold lowercase tracking-wider bg-red-50 text-red-700 border border-red-100 mt-1">
                                         <Shield size={10} />
                                         {currentUser?.role}
                                     </div>
@@ -154,7 +154,7 @@ const Settings = () => {
                                         <span className="text-[10px] text-gray-400 block uppercase font-bold">Username</span>
                                         {currentUser?.id}
                                     </div>
-                                    <div className="p-2.5 bg-gray-50 rounded-lg border border-gray-100 text-gray-700 text-sm capitalize">
+                                    <div className="p-2.5 bg-gray-50 rounded-lg border border-gray-100 text-gray-700 text-sm capitalize lowercase">
                                         <span className="text-[10px] text-gray-400 block uppercase font-bold">Role</span>
                                         {currentUser?.role}
                                     </div>
@@ -220,7 +220,7 @@ const Settings = () => {
                                                     </div>
                                                     <div>
                                                         <p className="font-bold">{user.id}</p>
-                                                        <span className="text-[9px] font-bold uppercase text-gray-400">{user.role}</span>
+                                                        <span className="text-[9px] font-bold lowercase text-gray-400">{user.role}</span>
                                                     </div>
                                                 </div>
                                             </td>
@@ -255,7 +255,7 @@ const Settings = () => {
         </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform animate-fade-in-up">
                 <div className="flex items-center justify-between p-4 border-b border-gray-50 bg-gray-50/50">
                     <h2 className="text-sm font-bold text-gray-800">

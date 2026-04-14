@@ -37,13 +37,14 @@ export interface ComplianceDocument {
   document_type: string;
 }
 
-export type DocumentType = 'calibration_certificate' | 'project_approval' | 'company_documents' | 'compliance_documents';
+export type DocumentType = 'calibration_certificate' | 'project_approval' | 'company_documents' | 'compliance_documents' | 'subscription';
 
 export const documentService = {
   async getAll(type: DocumentType): Promise<any[]> {
     const { data, error } = await supabase
       .from(type)
-      .select('*');
+      .select('*')
+      .order('id_no', { ascending: false });
 
     if (error) {
       return [];
@@ -75,15 +76,29 @@ export const documentService = {
     return true;
   },
 
-  async delete(type: DocumentType, id_no: string): Promise<boolean> {
+  async logRenewal(table: string, data: any): Promise<boolean> {
     const { error } = await supabase
-      .from(type)
-      .delete()
-      .eq('id_no', id_no);
+      .from(table)
+      .insert([data]);
 
     if (error) {
+      console.error(`Error logging renewal to ${table}:`, error);
       return false;
     }
     return true;
+  },
+
+  async getRenewalHistory(table: string, doc_id: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from(table)
+      .select('*')
+      .eq('doc_id', doc_id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error(`Error fetching renewal history from ${table}:`, error);
+      return [];
+    }
+    return data || [];
   }
 };

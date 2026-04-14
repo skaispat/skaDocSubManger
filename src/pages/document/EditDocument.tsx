@@ -40,10 +40,13 @@ const EditDocument: React.FC<EditDocumentProps> = ({ isOpen, onClose, documentId
                     status_of_document: doc.status || 'Active',
                     document_view: doc.file || '',
                     instrument_name: doc.documentType,
-                    brand_name: doc.companyName,
-                    calibration_date: doc.date,
-                    validity_period: (doc as any).validityPeriod || '',
-                    document_type: doc.documentType || ''
+                    brand_name: doc.brandName || doc.companyName || '',
+                    calibration_date: doc.calibrationDate || doc.date || '',
+                    validity_period: doc.validityPeriod || '',
+                    document_type: doc.documentType || '',
+                    id_sr_no: doc.serialNo || '',
+                    certificate_number: doc.certificateNo || '',
+                    location: doc.location || ''
                 });
             }
         }
@@ -83,9 +86,28 @@ const EditDocument: React.FC<EditDocumentProps> = ({ isOpen, onClose, documentId
             category === 'Compliance' ? 'compliance_documents' : 'company_documents';
 
         try {
-            // Clean payload
-            const { id_no, document_type, ...cleanData } = formData;
-            let finalPayload = { ...cleanData };
+            // Construct category-specific payload to avoid sending extra fields
+            let finalPayload: any = {
+                document_view: '', // will be set below
+                renewable: formData.renewable,
+                renewable_date: formData.renewable_date || null,
+                status_of_document: formData.status_of_document,
+                validity_period: formData.validity_period
+            };
+
+            if (category === 'Calibration') {
+                finalPayload.instrument_name = formData.instrument_name;
+                finalPayload.brand_name = formData.brand_name;
+                finalPayload.calibration_date = formData.calibration_date || null;
+                finalPayload.certificate_number = formData.certificate_number;
+                finalPayload.id_sr_no = formData.id_sr_no;
+                finalPayload.location = formData.location;
+            } else {
+                finalPayload.document_name = formData.document_name;
+                if (category === 'Compliance') {
+                    finalPayload.document_type = formData.document_type;
+                }
+            }
 
             // Handle new file uploads
             let newUrls: string[] = [];
@@ -110,7 +132,13 @@ const EditDocument: React.FC<EditDocumentProps> = ({ isOpen, onClose, documentId
                     needsRenewal: finalPayload.renewable === 'Yes',
                     renewalDate: finalPayload.renewable_date,
                     status: finalPayload.status_of_document,
-                    file: finalPayload.document_view
+                    file: finalPayload.document_view,
+                    brandName: finalPayload.brand_name,
+                    serialNo: finalPayload.id_sr_no,
+                    certificateNo: finalPayload.certificate_number,
+                    location: finalPayload.location,
+                    calibrationDate: finalPayload.calibration_date,
+                    validityPeriod: finalPayload.validity_period
                 });
                 toast.success("Record updated successfully");
                 onClose();
@@ -125,7 +153,7 @@ const EditDocument: React.FC<EditDocumentProps> = ({ isOpen, onClose, documentId
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto font-sans">
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto font-sans">
             <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-gray-50">
@@ -154,23 +182,66 @@ const EditDocument: React.FC<EditDocumentProps> = ({ isOpen, onClose, documentId
                             />
                         </div>
 
-                        {category === 'Compliance' && (
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-black text-gray-900 uppercase tracking-widest ml-1">Document Type</label>
-                                <input
-                                    type="text"
-                                    className="w-full p-3 rounded-xl bg-white border border-gray-300 outline-none focus:border-red-500 transition-all text-sm font-bold text-gray-900"
-                                    value={formData.document_type || ''}
-                                    onChange={e => handleChange('document_type', e.target.value)}
-                                />
-                            </div>
+                        {category === 'Calibration' && (
+                            <>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-black text-gray-900 uppercase tracking-widest ml-1">Brand Name</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-3 rounded-xl bg-white border border-gray-300 outline-none focus:border-red-500 transition-all text-sm font-bold text-gray-900"
+                                        value={formData.brand_name || ''}
+                                        onChange={e => handleChange('brand_name', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-black text-gray-900 uppercase tracking-widest ml-1">Calibration Date</label>
+                                    <input
+                                        type="date"
+                                        className="w-full p-3 rounded-xl bg-white border border-gray-300 outline-none focus:border-red-500 transition-all text-sm font-bold text-gray-900"
+                                        value={formData.calibration_date || ''}
+                                        onChange={e => handleChange('calibration_date', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-black text-gray-900 uppercase tracking-widest ml-1">Certificate Number</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-3 rounded-xl bg-white border border-gray-300 outline-none focus:border-red-500 transition-all text-sm font-bold text-gray-900"
+                                        value={formData.certificate_number || ''}
+                                        onChange={e => handleChange('certificate_number', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-black text-gray-900 uppercase tracking-widest ml-1">Serial Number</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-3 rounded-xl bg-white border border-gray-300 outline-none focus:border-red-500 transition-all text-sm font-bold text-gray-900"
+                                        value={formData.id_sr_no || ''}
+                                        onChange={e => handleChange('id_sr_no', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-black text-gray-900 uppercase tracking-widest ml-1">Location</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-3 rounded-xl bg-white border border-gray-300 outline-none focus:border-red-500 transition-all text-sm font-bold text-gray-900"
+                                        value={formData.location || ''}
+                                        onChange={e => handleChange('location', e.target.value)}
+                                    />
+                                </div>
+                            </>
                         )}
 
-                        {category !== 'Calibration' && (
-                             <div className="md:col-span-2 space-y-1.5 flex items-end">
-                                 {/* Just a spacer to keep layout if needed or remove entirely */}
-                             </div>
-                        )}
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-black text-gray-900 uppercase tracking-widest ml-1">Validity Period</label>
+                            <input
+                                type="text"
+                                className="w-full p-3 rounded-xl bg-white border border-gray-300 outline-none focus:border-red-500 transition-all text-sm font-bold text-gray-900"
+                                value={formData.validity_period || ''}
+                                onChange={e => handleChange('validity_period', e.target.value)}
+                                placeholder="e.g. 1 Year, 6 Months"
+                            />
+                        </div>
 
                         <div className="space-y-1.5">
                             <label className="text-xs font-black text-gray-900 uppercase tracking-widest ml-1">Renewable</label>

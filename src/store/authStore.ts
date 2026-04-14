@@ -4,6 +4,7 @@ import { authService } from '../api/authService';
 
 export interface User {
   id: string; // username
+  fullName?: string;
   password?: string;
   role: 'admin' | 'user';
   permissions: string[]; // e.g., ['Dashboard', 'Document', 'Subscription']

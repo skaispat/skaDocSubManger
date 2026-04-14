@@ -73,7 +73,7 @@ const EditSubscription: React.FC<EditSubscriptionProps> = ({ isOpen, onClose, su
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto font-sans">
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto font-sans">
             <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                 {/* Header */}
                 <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-gray-50">

@@ -19,14 +19,14 @@ const Layout: React.FC = () => {
 
       {/* Sidebar - Desktop and Mobile */}
       <div className={`
-        fixed top-0 left-0 h-full z-50 w-64 transform bg-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0
+        fixed top-0 left-0 h-full z-[1000] w-64 transform bg-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0
         ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
       `}>
         <Sidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* Main content container */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative z-0">
         <Header>
           <button
             onClick={() => setSidebarOpen(true)}

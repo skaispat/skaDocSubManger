@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, FileText, Eye, Edit, Trash2, RefreshCw } from 'lucide-react';
+import { Plus, Search, FileText, Eye, Edit, Trash2, MoreHorizontal, Mail, MessageCircle, Share2, RefreshCw } from 'lucide-react';
 import useDataStore, { DocumentItem } from '../../store/dataStore';
 import AddDocument from './AddDocument';
 import EditDocument from './EditDocument';
+import ShareModal from './ShareModal';
 import PreviewModal from '../../components/PreviewModal';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { formatDate } from '../../utils/dateFormatter';
@@ -26,7 +27,8 @@ const CalibrationCertificate = () => {
                 companyName: item.brand_name || 'N/A',
                 documentType: item.instrument_name || 'Calibration',
                 category: 'Calibration',
-                documentName: item.certificate_number || 'Certificate',
+                documentName: item.instrument_name || 'Instrument',
+                certificateNo: item.certificate_number || 'N/A',
                 needsRenewal: item.renewable === 'Yes',
                 renewalDate: item.renewable_date,
                 file: item.document_view || null,
@@ -78,12 +80,23 @@ const CalibrationCertificate = () => {
     const [editingDocId, setEditingDocId] = useState<string | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [shareType, setShareType] = useState<'email' | 'whatsapp' | 'both' | null>(null);
+    const [shareDoc, setShareDoc] = useState<{ id: string, name: string } | null>(null);
+
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [docToDelete, setDocToDelete] = useState<string | null>(null);
     const [showAlert, setShowAlert] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
+
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [previewData, setPreviewData] = useState<{ files: string[], name: string }>({ files: [], name: '' });
+
+    const openShare = (type: 'email' | 'whatsapp' | 'both', doc: { id: string, name: string }) => {
+        setShareType(type);
+        setShareDoc(doc);
+        setIsShareModalOpen(true);
+    };
 
     const handleEdit = (id: string) => {
         setEditingDocId(id);
@@ -184,10 +197,12 @@ const CalibrationCertificate = () => {
                                             onChange={toggleAll}
                                         />
                                     </th>
+                                    <th className="px-4 py-4 w-14 text-center italic opacity-60">Share</th>
                                     <th className="px-4 py-4 w-24 text-center">Action</th>
-                                    <th className="px-4 py-4">Serial No</th>
+                                    {/* <th className="px-4 py-4">Serial No</th> */}
+                                    <th className="px-4 py-4">Brand Name</th>
                                     <th className="px-4 py-4">Instrument Detail</th>
-                                    <th className="px-4 py-4">Cert Number</th>
+                                    <th className="px-4 py-4">Certificate Number</th>
                                     <th className="px-4 py-4 text-center">Validity</th>
                                     <th className="px-4 py-4 text-center">Renewal Date</th>
                                     <th className="px-4 py-4 text-center">Status</th>
@@ -196,13 +211,13 @@ const CalibrationCertificate = () => {
                             </thead>
                             <tbody className="text-xs md:text-sm divide-y divide-gray-100">
                                 {isLoading ? (
-                                    <tr>
+                                    <tr key="loading-desktop">
                                         <td colSpan={10} className="p-20 text-center">
                                             <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
                                         </td>
                                     </tr>
-                                ) : filteredData.map((item) => (
-                                    <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedIds.has(item.id) ? 'bg-red-50/20' : ''}`}>
+                                ) : filteredData.map((item, index) => (
+                                    <tr key={item.id || `cal-${index}`} className={`hover:bg-gray-50/50 transition-colors ${selectedIds.has(item.id) ? 'bg-red-50/20' : ''}`}>
                                         <td className="px-4 py-3 text-center">
                                             <input
                                                 type="checkbox"
@@ -211,20 +226,48 @@ const CalibrationCertificate = () => {
                                                 onChange={() => toggleSelection(item.id)}
                                             />
                                         </td>
+                                        <td className="px-4 py-3 text-center">
+                                            <DropdownMenu.Root>
+                                                <DropdownMenu.Trigger asChild>
+                                                    <button className="p-1.5 text-gray-400 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors">
+                                                        <Share2 size={16} />
+                                                    </button>
+                                                </DropdownMenu.Trigger>
+                                                <DropdownMenu.Portal>
+                                                    <DropdownMenu.Content className="min-w-[140px] bg-white rounded-lg shadow-lg border border-gray-100 p-1 z-50" sideOffset={5} align="start">
+                                                        <DropdownMenu.Item
+                                                            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 rounded-md cursor-pointer outline-none uppercase"
+                                                            onClick={() => openShare('email', { id: item.id, name: item.documentName })}
+                                                        >
+                                                            <Mail size={14} className="text-blue-600" />
+                                                            Email
+                                                        </DropdownMenu.Item>
+                                                        <DropdownMenu.Item
+                                                            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 rounded-md cursor-pointer outline-none uppercase"
+                                                            onClick={() => openShare('whatsapp', { id: item.id, name: item.documentName })}
+                                                        >
+                                                            <MessageCircle size={14} className="text-green-600" />
+                                                            WhatsApp
+                                                        </DropdownMenu.Item>
+                                                    </DropdownMenu.Content>
+                                                </DropdownMenu.Portal>
+                                            </DropdownMenu.Root>
+                                        </td>
                                         <td className="px-4 py-3">
                                             <div className="flex justify-center items-center gap-2">
-                                                <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg">
+                                                <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                                                     <Edit size={14} />
                                                 </button>
-                                                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg">
+                                                <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                                                     <Trash2 size={14} />
                                                 </button>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 font-medium text-gray-900">{item.sn}</td>
-                                        <td className="px-4 py-3 text-gray-900 font-bold">{item.companyName} / {item.documentType}</td>
-                                        <td className="px-4 py-3 text-gray-600 text-xs font-medium">{item.documentName}</td>
-                                        <td className="px-4 py-3 text-center text-gray-500 font-bold uppercase italic text-[10px]">{item.validityPeriod}</td>
+                                        {/* <td className="px-4 py-3 font-medium text-gray-900">{item.sn}</td> */}
+                                        <td className="px-4 py-3 text-gray-900 font-bold">{item.companyName}</td>
+                                        <td className="px-4 py-3 text-gray-600  font-medium">{item.documentType}</td>
+                                        <td className="px-4 py-3 text-gray-600 font-medium">{item.documentName}</td>
+                                        <td className="px-4 py-3 text-center text-gray-500 font-bold uppercase text-[12px]">{item.validityPeriod}</td>
                                         <td className="px-4 py-3 text-center text-gray-900 font-medium">{formatDate(item.renewalDate)}</td>
                                         <td className="px-4 py-3 text-center">
                                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${item.status === 'Active' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -233,7 +276,7 @@ const CalibrationCertificate = () => {
                                         </td>
                                         <td className="px-4 py-3 text-center">
                                             {item.file ? (
-                                                <button onClick={() => handlePreview(item.file, item.documentName)} className="text-red-600 hover:text-red-700 transition-colors" title="View Document">
+                                                <button onClick={() => handlePreview(item.file, item.documentName)} className="text-green-600 hover:text-green-700 transition-colors" title="View Document">
                                                     <Eye size={18} />
                                                 </button>
                                             ) : <span className="text-gray-300">-</span>}
@@ -248,11 +291,11 @@ const CalibrationCertificate = () => {
                 {/* Mobile View */}
                 <div className="md:hidden grid gap-4">
                     {isLoading ? (
-                        <div className="py-10 text-center">
+                        <div key="loading-mobile" className="py-10 text-center">
                             <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
                         </div>
-                    ) : filteredData.map((item) => (
-                        <div key={item.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                    ) : filteredData.map((item, index) => (
+                        <div key={item.id || `cal-mobile-${index}`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="font-bold text-gray-900">{item.companyName}</h3>
@@ -263,17 +306,23 @@ const CalibrationCertificate = () => {
                                 </span>
                             </div>
                             <div className="flex justify-between items-center text-xs text-gray-500 pt-2 border-t border-gray-50">
-                                <span>Cert: {item.documentName}</span>
+                                <button
+                                    onClick={() => openShare('both', { id: item.id, name: item.companyName + ' - ' + item.documentType })}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 text-gray-900 border border-gray-100 rounded-lg hover:bg-gray-100 transition-all font-bold text-[10px] uppercase shadow-sm"
+                                >
+                                    <Share2 size={14} className="text-gray-400" />
+                                    Share
+                                </button>
                                 <div className="flex gap-2">
                                     {item.file && (
-                                        <button onClick={() => handlePreview(item.file, item.companyName + ' - ' + item.documentType)} className="p-1.5 text-red-600">
+                                        <button onClick={() => handlePreview(item.file, item.companyName + ' - ' + item.documentType)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
                                             <Eye size={18} />
                                         </button>
                                     )}
-                                    <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600">
+                                    <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                                         <Edit size={16} />
                                     </button>
-                                    <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600">
+                                    <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
@@ -285,6 +334,13 @@ const CalibrationCertificate = () => {
 
             <AddDocument isOpen={isAddModalOpen} onClose={() => { setIsAddModalOpen(false); fetchData(); }} initialCategory="Calibration" />
             <EditDocument isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); fetchData(); }} documentId={editingDocId} />
+            <ShareModal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                type={shareType}
+                documentId={shareDoc?.id || ''}
+                documentName={shareDoc?.name || ''}
+            />
             <ConfirmModal
                 isOpen={showDeleteConfirm}
                 onClose={() => setShowDeleteConfirm(false)}
