@@ -25,7 +25,7 @@ const RenewalHistoryModal: React.FC<RenewalHistoryModalProps> = ({ isOpen, onClo
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[1300] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90vh]">
                 {/* Header */}
                 <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">

@@ -5,6 +5,7 @@ import CalibrationCertificate from './CalibrationCertifiicate';
 import ProjectApproval from './ProjectApproval';
 import ComplianceDocuments from './ComplianceDocuments';
 import SharedDocuments from './Shared';
+import MobileTabNavigator from '../../components/MobileTabNavigator';
 
 const DocumentsManager = () => {
     const [activeTab, setActiveTab] = useState<'all' | 'calibration' | 'project' | 'compliance' | 'shared'>('all');
@@ -17,21 +18,30 @@ const DocumentsManager = () => {
         { id: 'shared', label: 'Shared History', icon: <Share2 size={16} /> },
     ];
 
+    const navigator = (
+        <MobileTabNavigator 
+            tabs={tabs} 
+            activeTab={activeTab} 
+            onTabChange={(id) => setActiveTab(id as any)} 
+        />
+    );
+
     const renderContent = () => {
+        const props = { navigator };
         switch (activeTab) {
-            case 'all': return <AllDocuments />;
-            case 'calibration': return <CalibrationCertificate />;
-            case 'project': return <ProjectApproval />;
-            case 'compliance': return <ComplianceDocuments />;
-            case 'shared': return <SharedDocuments />;
-            default: return <AllDocuments />;
+            case 'all': return <AllDocuments {...props} />;
+            case 'calibration': return <CalibrationCertificate {...props} />;
+            case 'project': return <ProjectApproval {...props} />;
+            case 'compliance': return <ComplianceDocuments {...props} />;
+            case 'shared': return <SharedDocuments {...props} />;
+            default: return <AllDocuments {...props} />;
         }
     };
 
     return (
         <div className="space-y-4">
-            {/* Scrollable Tabs */}
-            <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-100 sticky top-0 z-20">
+            {/* Desktop Scrollable Tabs - Hidden on Mobile */}
+            <div className="hidden md:block bg-white p-1 rounded-xl shadow-sm border border-gray-100 sticky top-0 z-20">
                 <div className="flex overflow-x-auto no-scrollbar whitespace-nowrap gap-1">
                     {tabs.map((tab) => (
                         <button

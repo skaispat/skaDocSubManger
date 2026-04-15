@@ -100,5 +100,41 @@ export const documentService = {
       return [];
     }
     return data || [];
+  },
+
+  async delete(type: DocumentType, id_no: string): Promise<boolean> {
+    // 1. Delete related records from history tables first due to foreign key constraints
+    const renewalTableMap: Record<string, string> = {
+      'project_approval': 'renew_project',
+      'calibration_certificate': 'renew_calibration_certi',
+      'compliance_documents': 'renew_compliance_doc',
+      'company_documents': 'renew_company_doc',
+      'subscription': 'renew_subscription'
+    };
+
+    const historyTable = renewalTableMap[type];
+    if (historyTable) {
+      const { error: historyError } = await supabase
+        .from(historyTable)
+        .delete()
+        .eq('doc_id', id_no);
+      
+      if (historyError) {
+        console.error(`Error deleting history from ${historyTable}:`, historyError);
+        // We continue anyway, as the main delete might still succeed if no history existed
+      }
+    }
+
+    // 2. Delete the main record
+    const { error } = await supabase
+      .from(type)
+      .delete()
+      .eq('id_no', id_no);
+
+    if (error) {
+      console.error(`Error deleting from ${type}:`, error);
+      return false;
+    }
+    return true;
   }
 };

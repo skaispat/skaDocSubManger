@@ -67,7 +67,10 @@ const EditDocument: React.FC<EditDocumentProps> = ({ isOpen, onClose, documentId
 
     const handleLocalPreview = (files: File[], documentName: string) => {
         if (files.length === 0) return;
-        const blobUrls = files.map(file => URL.createObjectURL(file));
+        const blobUrls = files.map(file => {
+            const url = URL.createObjectURL(file);
+            return file.type === 'application/pdf' ? `${url}#pdf` : url;
+        });
         setPreviewData({ files: blobUrls, name: documentName || 'New Document' });
         setIsPreviewOpen(true);
     };

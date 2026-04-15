@@ -7,7 +7,7 @@ import { documentService } from '../../api/documentService';
 import ConfirmModal from '../../components/ConfirmModal';
 import RenewalHistoryModal from '../../components/RenewalHistoryModal';
 
-const SubscriptionRenewal = () => {
+const SubscriptionRenewal = ({ navigator }: { navigator?: React.ReactNode }) => {
     const { subscriptions, subscriptionRenewalHistory, addSubscriptionRenewalHistory, updateSubscription } = useDataStore();
 
     const [activeTab, setActiveTab] = useState<'all' | 'overdue' | 'critical'>('all');
@@ -158,32 +158,33 @@ const SubscriptionRenewal = () => {
     return (
         <div className="space-y-4 font-sans">
             <div className="flex flex-col gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="min-h-[32px] flex items-center">
-                        <h2 className="text-sm sm:text-base font-bold text-gray-800 uppercase tracking-widest">Subscription Renewals</h2>
+                <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4">
+                    <div className="flex flex-row justify-between items-center w-full md:w-auto gap-4">
+                        <h2 className="text-md font-black text-gray-900 uppercase tracking-tight">Subscription Renewals</h2>
+                        {navigator}
                     </div>
 
                     <div className="flex bg-gray-50 p-1.5 rounded-lg border border-gray-200 w-full sm:w-auto">
                         <button
                             onClick={() => setActiveTab('all')}
-                            className={`flex-1 sm:flex-none px-6 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'all' ? 'bg-white text-gray-950 shadow-md' : 'text-gray-500 hover:text-gray-900'
+                            className={`flex-1 sm:flex-none px-4 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'all' ? 'bg-white text-gray-950 shadow-md' : 'text-gray-500 hover:text-gray-900'
                                 }`}
                         >
-                            All <span className="ml-1 opacity-40">{searchedSubs.length}</span>
+                            All ({searchedSubs.length})
                         </button>
                         <button
                             onClick={() => setActiveTab('critical')}
-                            className={`flex-1 sm:flex-none px-6 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'critical' ? 'bg-white text-amber-700 shadow-md' : 'text-gray-500 hover:text-gray-900'
+                            className={`flex-1 sm:flex-none px-4 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'critical' ? 'bg-white text-amber-700 shadow-md' : 'text-amber-600/70 hover:text-amber-700'
                                 }`}
                         >
-                            Critical <span className="ml-1 opacity-40">{criticalSubscriptions.length}</span>
+                            Critical ({criticalSubscriptions.length})
                         </button>
                         <button
                             onClick={() => setActiveTab('overdue')}
-                            className={`flex-1 sm:flex-none px-6 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'overdue' ? 'bg-white text-red-700 shadow-md' : 'text-gray-500 hover:text-gray-900'
+                            className={`flex-1 sm:flex-none px-4 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'overdue' ? 'bg-white text-red-700 shadow-md' : 'text-red-600/70 hover:text-red-700'
                                 }`}
                         >
-                            Overdue <span className="ml-1 opacity-40">{overdueSubscriptions.length}</span>
+                            Overdue ({overdueSubscriptions.length})
                         </button>
                     </div>
                 </div>
@@ -193,7 +194,7 @@ const SubscriptionRenewal = () => {
                     <input
                         type="text"
                         placeholder="SEARCH ACROSS SUBSCRIPTION RENEWALS..."
-                        className="pl-12 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-red-50 bg-gray-50 text-sm font-bold text-gray-900 placeholder:text-gray-400 transition-all uppercase tracking-wide"
+                        className="pl-12 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-red-50 bg-gray-50 text-sm font-bold text-gray-900 placeholder:text-gray-400 placeholder:font-bold transition-all uppercase tracking-wide"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -367,11 +368,11 @@ const SubscriptionRenewal = () => {
                 </div>
             )}
             <ConfirmModal isOpen={showAlert} onClose={() => setShowAlert(false)} title="Alert" message={alertMessage} confirmText="Close" type="alert" />
-            <RenewalHistoryModal 
-                isOpen={isHistoryOpen} 
-                onClose={() => setIsHistoryOpen(false)} 
-                history={historyData} 
-                documentName={selectedSub?.company_name || ''} 
+            <RenewalHistoryModal
+                isOpen={isHistoryOpen}
+                onClose={() => setIsHistoryOpen(false)}
+                history={historyData}
+                documentName={selectedSub?.company_name || ''}
                 type="subscription"
             />
         </div>

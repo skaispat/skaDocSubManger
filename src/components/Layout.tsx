@@ -26,7 +26,7 @@ const Layout: React.FC = () => {
       </div>
 
       {/* Main content container */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative z-0">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         <Header>
           <button
             onClick={() => setSidebarOpen(true)}

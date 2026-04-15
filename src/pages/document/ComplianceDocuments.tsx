@@ -11,7 +11,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import { documentService } from '../../api/documentService';
 import { toast } from 'react-hot-toast';
 
-const ComplianceDocuments = () => {
+const ComplianceDocuments = ({ navigator }: { navigator?: React.ReactNode }) => {
     const { documents = [], setDocuments, deleteDocument } = useDataStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -147,7 +147,7 @@ const ComplianceDocuments = () => {
             <div className="space-y-4 font-sans">
                 {/* Header Section */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <div className="min-h-[40px] flex items-center">
+                    <div className="min-h-[40px] flex items-center justify-between w-full sm:w-auto gap-4">
                         {selectedIds.size > 0 ? (
                             <div className="flex flex-wrap items-center gap-3 animate-fade-in w-full sm:w-auto">
                                 <span className="text-xs text-red-700 font-bold bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 uppercase tracking-wider">
@@ -171,7 +171,10 @@ const ComplianceDocuments = () => {
                                 </div>
                             </div>
                         ) : (
-                            <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Compliance Documents</h2>
+                            <>
+                                <h2 className="text-md font-black text-gray-900 uppercase tracking-tight">Compliance Documents</h2>
+                                {navigator}
+                            </>
                         )}
                     </div>
                     <div className="flex w-full sm:w-auto gap-2 sm:gap-3">
@@ -187,9 +190,9 @@ const ComplianceDocuments = () => {
                         </div>
                         <button
                             onClick={() => setIsAddModalOpen(true)}
-                            className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-all text-xs font-bold uppercase tracking-wider whitespace-nowrap"
+                            className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl transition-all text-[10px] sm:text-xs font-black uppercase tracking-widest shadow-lg shadow-red-100 select-none active:scale-95"
                         >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-4 w-4 stroke-[3px]" />
                             <span className="hidden sm:inline">Add Compliance</span>
                             <span className="sm:hidden">Add</span>
                         </button>
@@ -217,13 +220,12 @@ const ComplianceDocuments = () => {
                                     <th className="px-4 py-4 text-center">Validity</th>
                                     <th className="px-4 py-4 text-center">Renewal Date</th>
                                     <th className="px-4 py-4 text-center">Status</th>
-                                    <th className="px-4 py-4 text-center">View</th>
                                 </tr>
                             </thead>
                             <tbody className="text-xs md:text-sm divide-y divide-gray-100">
                                 {isLoading ? (
                                     <tr key="loading-desktop">
-                                        <td colSpan={9} className="p-20 text-center">
+                                        <td colSpan={7} className="p-20 text-center text-gray-400">
                                             <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
                                             <p className="mt-2 text-xs font-bold text-gray-500 uppercase">Syncing...</p>
                                         </td>
@@ -270,6 +272,15 @@ const ComplianceDocuments = () => {
                                                 <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                                                     <Edit size={14} />
                                                 </button>
+                                                {item.file ? (
+                                                    <button onClick={() => handlePreview(item.file, item.documentName)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="View Document">
+                                                        <Eye size={14} />
+                                                    </button>
+                                                ) : (
+                                                    <div className="p-1.5 text-gray-300">
+                                                        <Eye size={14} className="opacity-20" />
+                                                    </div>
+                                                )}
                                                 <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                                                     <Trash2 size={14} />
                                                 </button>
@@ -280,17 +291,15 @@ const ComplianceDocuments = () => {
                                         <td className="px-4 py-3 text-center text-gray-600 font-bold uppercase text-[11px]">{item.validityPeriod}</td>
                                         <td className="px-4 py-3 text-center text-gray-900 font-medium">{item.renewalDate ? formatDate(item.renewalDate) : '-'}</td>
                                         <td className="px-4 py-3 text-center">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${item.status === 'Active' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                                                item.status === 'Completed' || item.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' : 
+                                                item.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' : 
+                                                'bg-red-50 text-red-700 border-red-100'
+                                            }`}>
                                                 {item.status}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 text-center">
-                                            {item.file ? (
-                                                <button onClick={() => handlePreview(item.file, item.documentName)} className="text-green-600 hover:text-green-700 transition-colors" title="View Document">
-                                                    <Eye size={18} />
-                                                </button>
-                                            ) : <span className="text-gray-300">-</span>}
-                                        </td>
+
                                     </tr>
                                 ))}
                             </tbody>
@@ -317,7 +326,11 @@ const ComplianceDocuments = () => {
                                     <h3 className="font-bold text-gray-900">{item.documentName}</h3>
                                     <p className="text-[10px] text-gray-500 font-bold uppercase mt-0.5">{item.documentType}</p>
                                 </div>
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Active' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}`}>
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                                    item.status === 'Completed' || item.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' : 
+                                    item.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' : 
+                                    'bg-red-50 text-red-700 border-red-100'
+                                }`}>
                                     {item.status}
                                 </span>
                             </div>
@@ -348,7 +361,7 @@ const ComplianceDocuments = () => {
                 </div>
             </div>
 
-            <AddDocument isOpen={isAddModalOpen} onClose={() => { setIsAddModalOpen(false); fetchData(); }} initialCategory="Compliance" />
+            <AddDocument isOpen={isAddModalOpen} onClose={() => { setIsAddModalOpen(false); fetchData(); }} initialCategory="Compliance" lockCategory={true} />
             <EditDocument isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); fetchData(); }} documentId={editingDocId} />
             <ShareModal
                 isOpen={isShareModalOpen}

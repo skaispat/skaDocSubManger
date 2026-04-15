@@ -257,14 +257,13 @@ const DocumentRenewal = () => {
                                 <th className="px-5 py-4 w-32 text-center rounded-tl-xl">Action</th>
                                 <th className="px-5 py-3">Document Name</th>
                                 <th className="px-5 py-3 text-center">Category</th>
-                                <th className="px-5 py-3 text-center">Renewal Date</th>
-                                <th className="px-5 py-3 text-center">View</th>
+                                <th className="px-5 py-3 text-center rounded-tr-xl">Renewal Date</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={5} className="p-20 text-center">
+                                    <td colSpan={4} className="p-20 text-center">
                                         <div className="inline-block h-8 w-8 border-4 border-red-100 border-t-red-600 rounded-full animate-spin" />
                                     </td>
                                 </tr>
@@ -274,14 +273,21 @@ const DocumentRenewal = () => {
 
                                 return (
                                     <tr key={doc.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-5 py-3 text-center">
-                                            <button
-                                                onClick={() => handleOpenRenewal(doc)}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded hover:bg-red-700 transition-all"
-                                            >
-                                                <RotateCcw size={14} />
-                                                Renew
-                                            </button>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => handleOpenRenewal(doc)}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded hover:bg-red-700 transition-all shadow-sm"
+                                                >
+                                                    <RotateCcw size={12} />
+                                                    Renew
+                                                </button>
+                                                {doc.file && (
+                                                    <button onClick={() => handlePreview(doc.file, doc.documentName)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-100 bg-white" title="View Document">
+                                                        <Eye size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-5 py-3 text-gray-900 font-bold">{doc.documentName}</td>
                                         <td className="px-5 py-3 text-center">
@@ -297,18 +303,12 @@ const DocumentRenewal = () => {
                                                 {doc.renewalDate ? formatDate(doc.renewalDate) : '-'}
                                             </span>
                                         </td>
-                                        <td className="px-5 py-3 text-center">
-                                            {doc.file ? (
-                                                <button onClick={() => handlePreview(doc.file, doc.documentName)} className="text-green-600 hover:text-green-700 transition-colors" title="View Document">
-                                                    <Eye size={18} />
-                                                </button>
-                                            ) : <span className="text-gray-300">-</span>}
-                                        </td>
+
                                     </tr>
                                 );
                             }) : (
                                 <tr>
-                                    <td colSpan={5} className="p-20 text-center text-gray-400">
+                                    <td colSpan={4} className="p-20 text-center text-gray-400">
                                         <Check size={40} className="mx-auto mb-2 text-green-200" />
                                         <p className="font-medium">No documents require renewal in this category</p>
                                     </td>

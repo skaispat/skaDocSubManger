@@ -86,27 +86,6 @@ const AllSubscriptions = () => {
 
     return (
         <div className="space-y-4 font-sans">
-            {/* Stats Overview */}
-            {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                    <div>
-                        <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest opacity-60">Total Active</p>
-                        <h4 className="text-2xl font-bold text-gray-900 mt-1">{filteredData.length}</h4>
-                    </div>
-                    <div className="p-3 bg-red-50 text-red-600 rounded-lg">
-                        <CreditCard size={24} />
-                    </div>
-                </div>
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between col-span-2">
-                    <div>
-                        <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest opacity-60">Total Recurring Value</p>
-                        <h4 className="text-2xl font-bold text-red-600 mt-1">₹{totalValue.toLocaleString()}</h4>
-                    </div>
-                    <div className="p-3 bg-green-50 text-green-600 rounded-lg">
-                        <DollarSign size={24} />
-                    </div>
-                </div>
-            </div> */}
 
             {/* Actions & Search */}
             <div className="flex flex-row justify-between items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -122,9 +101,9 @@ const AllSubscriptions = () => {
                 </div>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all text-xs font-bold uppercase tracking-wider whitespace-nowrap shadow-sm shrink-0"
+                    className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl transition-all text-[10px] sm:text-xs font-black uppercase tracking-widest shadow-lg shadow-red-100 shrink-0 select-none active:scale-95"
                 >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 stroke-[3px]" />
                     <span className="hidden sm:inline">Add Subscription</span>
                     <span className="sm:hidden">Add</span>
                 </button>
@@ -136,8 +115,7 @@ const AllSubscriptions = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50 shadow-sm text-[10px] md:text-[11px] uppercase font-black text-gray-950 tracking-widest">
-                                <th className="px-5 py-4 w-20 first:rounded-tl-lg">ID Reference</th>
-                                <th className="px-5 py-3">Subscription</th>
+                                <th className="px-5 py-3 first:rounded-tl-lg">Subscription</th>
                                 <th className="px-5 py-3">Company</th>
                                 <th className="px-5 py-3 text-center">Frequency</th>
                                 <th className="px-5 py-3 text-center">Price</th>
@@ -154,7 +132,7 @@ const AllSubscriptions = () => {
                                 </tr>
                             ) : filteredData.map((item, index) => (
                                 <tr key={item.id || `sub-${index}`} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-5 py-4 text-xs font-medium text-gray-500">{item.sn}</td>
+
                                     <td className="px-5 py-4">
                                         <div>
                                             <p className="font-bold text-gray-900">{item.subscriptionName}</p>
@@ -179,12 +157,12 @@ const AllSubscriptions = () => {
                                         </span>
                                     </td>
                                     <td className="px-5 py-4">
-                                        <div className="flex justify-end items-center gap-2">
+                                        <div className="flex justify-center items-center gap-2">
                                             <button onClick={() => handleEdit(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
-                                                <Edit size={16} />
+                                                <Edit size={14} />
                                             </button>
                                             <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                                                <Trash2 size={16} />
+                                                <Trash2 size={14} />
                                             </button>
                                         </div>
                                     </td>
@@ -204,11 +182,12 @@ const AllSubscriptions = () => {
                 ) : filteredData.map((item, index) => (
                     <div key={item.id || `sub-mobile-${index}`} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-3">
                         <div className="flex justify-between items-start">
-                            <div>
-                                <h4 className="font-bold text-gray-900">{item.subscriptionName}</h4>
-                                <span className="text-[10px] text-gray-400 uppercase">ID: {item.sn}</span>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Subscription Details</p>
+                                <h4 className="font-bold text-gray-900 text-sm">{item.subscriptionName}</h4>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase mt-0.5 tracking-tight">{item.purpose}</p>
                             </div>
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Active' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}`}>
+                            <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm ${item.status === 'Active' ? 'text-green-700 bg-green-50 border border-green-100' : 'text-red-700 bg-red-50 border border-red-100'}`}>
                                 {item.status}
                             </span>
                         </div>

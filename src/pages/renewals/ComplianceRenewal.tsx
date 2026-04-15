@@ -9,7 +9,7 @@ import RenewalHistoryModal from '../../components/RenewalHistoryModal';
 import { documentService } from '../../api/documentService';
 import { storageService } from '../../api/storageService';
 
-const ComplianceRenewal = () => {
+const ComplianceRenewal = ({ navigator }: { navigator?: React.ReactNode }) => {
     const { updateDocument, addRenewalHistory } = useDataStore();
 
     const [activeTab, setActiveTab] = useState<'all' | 'overdue' | 'critical'>('all');
@@ -233,32 +233,33 @@ const ComplianceRenewal = () => {
         <div className="space-y-4 font-sans">
             {/* Header Section */}
             <div className="flex flex-col gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="min-h-[32px] flex items-center">
-                        <h2 className="text-sm sm:text-base font-bold text-gray-800 uppercase tracking-widest">Compliance Renewals</h2>
+                <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4">
+                    <div className="flex flex-row justify-between items-center w-full md:w-auto gap-4">
+                        <h2 className="text-md font-black text-gray-900 uppercase tracking-tight">Compliance Renewals</h2>
+                        {navigator}
                     </div>
 
                     <div className="flex bg-gray-50 p-1.5 rounded-lg border border-gray-200 w-full sm:w-auto">
                         <button
                             onClick={() => setActiveTab('all')}
-                            className={`flex-1 sm:flex-none px-6 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'all' ? 'bg-white text-gray-950 shadow-md' : 'text-gray-500 hover:text-gray-900'
+                            className={`flex-1 sm:flex-none px-4 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'all' ? 'bg-white text-gray-950 shadow-md' : 'text-gray-500 hover:text-gray-900'
                                 }`}
                         >
-                            All <span className="ml-1 opacity-40">{complianceDocs.length}</span>
+                            All ({complianceDocs.length})
                         </button>
                         <button
                             onClick={() => setActiveTab('critical')}
-                            className={`flex-1 sm:flex-none px-6 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'critical' ? 'bg-white text-amber-700 shadow-md' : 'text-gray-500 hover:text-gray-900'
+                            className={`flex-1 sm:flex-none px-4 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'critical' ? 'bg-white text-amber-700 shadow-md' : 'text-amber-600/70 hover:text-amber-700'
                                 }`}
                         >
-                            Critical <span className="ml-1 opacity-40">{criticalDocuments.length}</span>
+                            Critical ({criticalDocuments.length})
                         </button>
                         <button
                             onClick={() => setActiveTab('overdue')}
-                            className={`flex-1 sm:flex-none px-6 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'overdue' ? 'bg-white text-red-700 shadow-md' : 'text-gray-500 hover:text-gray-900'
+                            className={`flex-1 sm:flex-none px-4 py-2 text-xs font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'overdue' ? 'bg-white text-red-700 shadow-md' : 'text-red-600/70 hover:text-red-700'
                                 }`}
                         >
-                            Overdue <span className="ml-1 opacity-40">{overdueDocuments.length}</span>
+                            Overdue ({overdueDocuments.length})
                         </button>
                     </div>
                 </div>
@@ -268,7 +269,7 @@ const ComplianceRenewal = () => {
                     <input
                         type="text"
                         placeholder="SEARCH ACROSS COMPLIANCE RENEWALS..."
-                        className="pl-12 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-red-50 bg-gray-50 text-sm font-bold text-gray-900 placeholder:text-gray-400 transition-all uppercase tracking-wide"
+                        className="pl-12 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-red-50 bg-gray-50 text-sm font-bold text-gray-900 placeholder:text-gray-400 placeholder:font-bold transition-all uppercase tracking-wide"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -283,7 +284,7 @@ const ComplianceRenewal = () => {
                                 <th className="px-5 py-4 w-32 text-center rounded-tl-xl">Actions</th>
                                 <th className="px-5 py-3">Document Title</th>
                                 <th className="px-5 py-3 text-center">Renewal Date</th>
-                                <th className="px-5 py-3 text-center">Documents</th>
+                                <th className="px-5 py-3 text-center rounded-tr-xl">Downloads</th>
                                 <th className="px-5 py-3 text-center rounded-tr-xl">Renewal History</th>
                             </tr>
                         </thead>
@@ -294,9 +295,14 @@ const ComplianceRenewal = () => {
                                 return (
                                     <tr key={doc.id_no || `comp-${index}`} className="hover:bg-gray-50/50 transition-colors">
                                         <td className="px-5 py-3 text-center">
-                                            <button onClick={() => handleOpenRenewal(doc)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-red-700 transition-all shadow-sm">
-                                                <RotateCcw size={14} /> Renew
-                                            </button>
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button onClick={() => handleOpenRenewal(doc)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-red-700 transition-all shadow-sm">
+                                                    <RotateCcw size={14} /> Renew
+                                                </button>
+                                                <button onClick={() => handlePreview(doc.document_view, doc.document_name)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-100 bg-white" title="View Document">
+                                                    <Eye size={14} />
+                                                </button>
+                                            </div>
                                         </td>
                                         <td className="px-5 py-3 text-gray-900 font-bold">{doc.document_name}</td>
                                         <td className="px-5 py-3 text-center">
@@ -305,14 +311,9 @@ const ComplianceRenewal = () => {
                                             </span>
                                         </td>
                                         <td className="px-5 py-3 text-center">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <button onClick={() => handleDownload(doc.document_view, doc.document_name)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors shadow-sm bg-white" title="Download">
-                                                    <Download size={14} />
-                                                </button>
-                                                <button onClick={() => handlePreview(doc.document_view, doc.document_name)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                                                    <Eye size={18} />
-                                                </button>
-                                            </div>
+                                            <button onClick={() => handleDownload(doc.document_view, doc.document_name)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors shadow-sm bg-white" title="Download">
+                                                <Download size={14} />
+                                            </button>
                                         </td>
                                         <td className="px-5 py-3 text-center">
                                             <button onClick={() => handleViewHistory(doc)} className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-100 transition-all">
@@ -347,10 +348,10 @@ const ComplianceRenewal = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <button onClick={() => handlePreview(doc.document_view, doc.document_name)} className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 text-gray-600 text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                                            <Eye size={12} /> View
+                                            <Eye size={14} /> View
                                         </button>
                                         <button onClick={() => handleOpenRenewal(doc)} className="flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                                            <RotateCcw size={12} /> Renew
+                                            <RotateCcw size={14} /> Renew
                                         </button>
                                     </div>
                                 </div>
@@ -427,11 +428,11 @@ const ComplianceRenewal = () => {
             )}
             <ConfirmModal isOpen={showAlert} onClose={() => setShowAlert(false)} title="Alert" message={alertMessage} confirmText="Close" type="alert" />
             <PreviewModal isOpen={isPreviewOpen} onClose={() => setIsPreviewOpen(false)} files={previewData.files} documentName={previewData.name} />
-            <RenewalHistoryModal 
-                isOpen={isHistoryOpen} 
-                onClose={() => setIsHistoryOpen(false)} 
-                history={historyData} 
-                documentName={selectedDoc?.document_name || ''} 
+            <RenewalHistoryModal
+                isOpen={isHistoryOpen}
+                onClose={() => setIsHistoryOpen(false)}
+                history={historyData}
+                documentName={selectedDoc?.document_name || ''}
                 type="document"
             />
         </div>

@@ -15,12 +15,14 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, files, doc
     if (!isOpen || files.length === 0) return null;
 
     const currentUrl = files[currentIndex];
-    const isPdf = currentUrl?.toLowerCase().endsWith('.pdf');
-    const isImage = currentUrl?.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|bmp)$/i);
-    const fileName = currentUrl?.split('/').pop() || 'document';
+    const isPdf = currentUrl?.toLowerCase().endsWith('.pdf') || currentUrl?.includes('#pdf') || currentUrl?.startsWith('data:application/pdf');
+    const isImage = currentUrl?.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|bmp)$/i) || currentUrl?.startsWith('data:image/');
+    const isLocal = currentUrl?.startsWith('blob:') || currentUrl?.startsWith('data:');
+    const fileName = currentUrl?.split('/').pop()?.split('#')[0] || 'document';
     
-    // Use Google Docs viewer proxy for mobile/web PDF rendering compatibility
-    const pdfViewerUrl = isPdf 
+    // Use Google Docs viewer proxy for external PDFs (better compatibility)
+    // Direct link for local blobs/data as Google can't access them
+    const pdfViewerUrl = (isPdf && !isLocal)
         ? `https://docs.google.com/viewer?url=${encodeURIComponent(currentUrl)}&embedded=true` 
         : currentUrl;
 
