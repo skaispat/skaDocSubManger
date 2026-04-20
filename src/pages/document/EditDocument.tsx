@@ -46,7 +46,8 @@ const EditDocument: React.FC<EditDocumentProps> = ({ isOpen, onClose, documentId
                     document_type: doc.documentType || '',
                     id_sr_no: doc.serialNo || '',
                     certificate_number: doc.certificateNo || '',
-                    location: doc.location || ''
+                    location: doc.location || '',
+                    whatsapp_no: doc.whatsappNo || ''
                 });
             }
         }
@@ -95,7 +96,8 @@ const EditDocument: React.FC<EditDocumentProps> = ({ isOpen, onClose, documentId
                 renewable: formData.renewable,
                 renewable_date: formData.renewable_date || null,
                 status_of_document: formData.status_of_document,
-                validity_period: formData.validity_period
+                validity_period: formData.validity_period,
+                whatsapp_no: formData.whatsapp_no
             };
 
             if (category === 'Calibration') {
@@ -141,7 +143,8 @@ const EditDocument: React.FC<EditDocumentProps> = ({ isOpen, onClose, documentId
                     certificateNo: finalPayload.certificate_number,
                     location: finalPayload.location,
                     calibrationDate: finalPayload.calibration_date,
-                    validityPeriod: finalPayload.validity_period
+                    validityPeriod: finalPayload.validity_period,
+                    whatsappNo: finalPayload.whatsapp_no
                 });
                 toast.success("Record updated successfully");
                 onClose();
@@ -243,6 +246,17 @@ const EditDocument: React.FC<EditDocumentProps> = ({ isOpen, onClose, documentId
                                 value={formData.validity_period || ''}
                                 onChange={e => handleChange('validity_period', e.target.value)}
                                 placeholder="e.g. 1 Year, 6 Months"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-black text-gray-900 uppercase tracking-widest ml-1">WhatsApp No (For Alerts)</label>
+                            <input
+                                type="tel"
+                                className="w-full p-3 rounded-xl bg-white border border-gray-300 outline-none focus:border-red-500 transition-all text-sm font-bold text-gray-900"
+                                value={formData.whatsapp_no || ''}
+                                onChange={e => handleChange('whatsapp_no', e.target.value)}
+                                placeholder="e.g. 919876543210"
                             />
                         </div>
 

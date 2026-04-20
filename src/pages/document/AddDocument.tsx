@@ -25,6 +25,7 @@ interface Entry {
     location: string; // Calibration
     certificate_number: string; // Calibration
     calibration_date: string; // Calibration
+    whatsapp_no: string;
 }
 
 interface AddDocumentProps {
@@ -53,7 +54,8 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose, initialCateg
             id_sr_no: '',
             location: '',
             certificate_number: '',
-            calibration_date: ''
+            calibration_date: '',
+            whatsapp_no: ''
         }
     ]);
 
@@ -101,7 +103,8 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose, initialCateg
                 id_sr_no: '',
                 location: '',
                 certificate_number: '',
-                calibration_date: ''
+                calibration_date: '',
+                whatsapp_no: ''
             }
         ]);
     };
@@ -175,7 +178,8 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose, initialCateg
                         renewable_date: entry.renewable_date || null,
                         calibration_date: entry.calibration_date || null,
                         status_of_document: entry.status_of_document,
-                        validity_period: entry.validity_period
+                        validity_period: entry.validity_period,
+                        whatsapp_no: entry.whatsapp_no
                     };
                 } else if (entry.category === 'Project') {
                     table = 'project_approval';
@@ -185,7 +189,8 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose, initialCateg
                         renewable: entry.renewable,
                         renewable_date: entry.renewable_date || null,
                         status_of_document: entry.status_of_document,
-                        validity_period: entry.validity_period
+                        validity_period: entry.validity_period,
+                        whatsapp_no: entry.whatsapp_no
                     };
                 } else if (entry.category === 'Compliance') {
                     table = 'compliance_documents';
@@ -196,7 +201,8 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose, initialCateg
                         renewable_date: entry.renewable_date || null,
                         status_of_document: entry.status_of_document,
                         validity_period: entry.validity_period,
-                        document_type: entry.document_type
+                        document_type: entry.document_type,
+                        whatsapp_no: entry.whatsapp_no
                     };
                 } else {
                     table = 'company_documents';
@@ -206,7 +212,8 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose, initialCateg
                         renewable: entry.renewable,
                         renewable_date: entry.renewable_date || null,
                         status_of_document: entry.status_of_document,
-                        validity_period: entry.validity_period
+                        validity_period: entry.validity_period,
+                        whatsapp_no: entry.whatsapp_no
                     };
                 }
 
@@ -232,7 +239,8 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose, initialCateg
                     id_sr_no: '',
                     location: '',
                     certificate_number: '',
-                    calibration_date: ''
+                    calibration_date: '',
+                    whatsapp_no: ''
                 }
             ]);
             onClose();
@@ -372,6 +380,17 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose, initialCateg
                                             className="w-full p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-300 text-sm sm:text-base font-semibold"
                                             value={entry.validity_period}
                                             onChange={e => handleChange(entry.id, 'validity_period', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] sm:text-xs font-bold uppercase">WhatsApp No (For Alerts)</label>
+                                        <input
+                                            type="tel"
+                                            placeholder="e.g. 919876543210"
+                                            className="w-full p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-300 text-sm sm:text-base font-semibold"
+                                            value={entry.whatsapp_no}
+                                            onChange={e => handleChange(entry.id, 'whatsapp_no', e.target.value)}
                                         />
                                     </div>
 

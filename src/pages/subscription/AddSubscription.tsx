@@ -11,6 +11,7 @@ interface Entry {
     frequency: string;
     status: string;
     price: string;
+    whatsapp_no: string;
 }
 
 interface AddSubscriptionProps {
@@ -20,14 +21,15 @@ interface AddSubscriptionProps {
 
 const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose }) => {
     const [entries, setEntries] = useState<Entry[]>([
-        { 
-            id: Math.random().toString(), 
+        {
+            id: Math.random().toString(),
             id_no: '',
             company_name: '',
             service_name: '',
             frequency: 'Monthly',
             status: 'Active',
-            price: ''
+            price: '',
+            whatsapp_no: ''
         }
     ]);
 
@@ -46,14 +48,15 @@ const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose }) =>
         }
         setEntries(prev => [
             ...prev,
-            { 
-                id: Math.random().toString(), 
-                id_no: '', 
-                company_name: '', 
-                service_name: '', 
+            {
+                id: Math.random().toString(),
+                id_no: '',
+                company_name: '',
+                service_name: '',
                 frequency: 'Monthly',
                 status: 'Active',
-                price: '' 
+                price: '',
+                whatsapp_no: ''
             }
         ]);
     };
@@ -80,7 +83,8 @@ const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose }) =>
                     service_name: entry.service_name,
                     frequency: entry.frequency,
                     status: entry.status,
-                    price: parseInt(entry.price)
+                    price: parseInt(entry.price),
+                    whatsapp_no: entry.whatsapp_no
                 } as any;
 
                 await subscriptionService.create(payload);
@@ -139,7 +143,7 @@ const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose }) =>
                                             <input
                                                 type="text"
                                                 required
-                                            className="w-full pl-11 pr-4 py-3 rounded-xl bg-white border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-100 outline-none text-base font-bold text-gray-900 transition-colors"
+                                                className="w-full pl-11 pr-4 py-3 rounded-xl bg-white border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-100 outline-none text-base font-bold text-gray-900 transition-colors"
                                                 value={entry.company_name}
                                                 onChange={e => handleChange(entry.id, 'company_name', e.target.value)}
                                                 placeholder="Legal Entity Name"
@@ -166,7 +170,7 @@ const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose }) =>
                                             <input
                                                 type="number"
                                                 required
-                                            className="w-full pl-11 pr-4 py-3 rounded-xl bg-white border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-100 outline-none text-base font-bold text-red-600 transition-colors"
+                                                className="w-full pl-11 pr-4 py-3 rounded-xl bg-white border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-100 outline-none text-base font-bold text-red-600 transition-colors"
                                                 value={entry.price}
                                                 onChange={e => handleChange(entry.id, 'price', e.target.value)}
                                                 placeholder="0.00"
@@ -201,6 +205,17 @@ const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose }) =>
                                             <option value="Cancelled">Cancelled</option>
                                         </select>
                                     </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black text-gray-900 uppercase tracking-widest ml-1">WhatsApp No</label>
+                                        <input
+                                            type="tel"
+                                            className="w-full p-3 rounded-xl bg-white border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-100 outline-none text-base font-bold text-gray-900 transition-colors"
+                                            value={entry.whatsapp_no}
+                                            onChange={e => handleChange(entry.id, 'whatsapp_no', e.target.value)}
+                                            placeholder="919876543210"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -223,9 +238,9 @@ const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose }) =>
                     <button type="button" onClick={onClose} className="flex-1 py-3 px-8 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">
                         Dismiss
                     </button>
-                    <button 
-                        type="submit" 
-                        form="supabase-sub-form" 
+                    <button
+                        type="submit"
+                        form="supabase-sub-form"
                         disabled={isSubmitting}
                         className={`flex-[2] flex items-center justify-center gap-2 py-3 px-8 rounded-xl bg-red-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-sm active:scale-95 ${isSubmitting ? 'opacity-50' : ''}`}
                     >

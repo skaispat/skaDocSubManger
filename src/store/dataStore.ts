@@ -20,6 +20,7 @@ export interface DocumentItem {
     certificateNo?: string;
     location?: string;
     calibrationDate?: string;
+    whatsappNo?: string;
 }
 
 export interface SubscriptionItem {
@@ -49,6 +50,7 @@ export interface SubscriptionItem {
     paymentFileContent?: string;
     file?: string | null;
     fileContent?: string;
+    whatsappNo?: string;
 }
 
 export interface MasterItem {

@@ -25,7 +25,8 @@ const EditSubscription: React.FC<EditSubscriptionProps> = ({ isOpen, onClose, su
                     service_name: sub.subscriptionName,
                     frequency: sub.frequency || 'Monthly',
                     status: sub.status || 'Active',
-                    price: sub.price
+                    price: sub.price,
+                    whatsapp_no: sub.whatsappNo || ''
                 });
             }
         }
@@ -48,7 +49,8 @@ const EditSubscription: React.FC<EditSubscriptionProps> = ({ isOpen, onClose, su
                 service_name: formData.service_name,
                 frequency: formData.frequency,
                 status: formData.status,
-                price: parseInt(formData.price)
+                price: parseInt(formData.price),
+                whatsapp_no: formData.whatsapp_no
             };
 
             const success = await subscriptionService.update(subscriptionId, payload);
@@ -58,7 +60,8 @@ const EditSubscription: React.FC<EditSubscriptionProps> = ({ isOpen, onClose, su
                     subscriptionName: formData.service_name,
                     frequency: formData.frequency,
                     status: formData.status,
-                    price: formData.price
+                    price: formData.price,
+                    whatsappNo: formData.whatsapp_no
                 });
                 toast.success("Subscription updated");
                 onClose();
@@ -141,6 +144,17 @@ const EditSubscription: React.FC<EditSubscriptionProps> = ({ isOpen, onClose, su
                                     onChange={e => handleChange('status', e.target.value)}
                                 />
                             </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-gray-900 uppercase tracking-widest ml-1">WhatsApp No</label>
+                                <input
+                                    type="tel"
+                                    className="w-full p-3 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-red-100 outline-none text-sm font-bold text-gray-900"
+                                    value={formData.whatsapp_no || ''}
+                                    onChange={e => handleChange('whatsapp_no', e.target.value)}
+                                    placeholder="919876543210"
+                                />
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -150,9 +164,9 @@ const EditSubscription: React.FC<EditSubscriptionProps> = ({ isOpen, onClose, su
                     <button type="button" onClick={onClose} className="flex-1 py-3 px-8 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-gray-900 transition-colors">
                         Cancel
                     </button>
-                    <button 
-                        type="submit" 
-                        form="edit-sub-supabase-form" 
+                    <button
+                        type="submit"
+                        form="edit-sub-supabase-form"
                         disabled={isSaving}
                         className={`flex-[2] flex items-center justify-center gap-2 py-3 px-8 rounded-xl bg-red-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-red-700 transition-all shadow-sm ${isSaving ? 'opacity-50' : ''}`}
                     >
