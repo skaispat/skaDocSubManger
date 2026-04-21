@@ -7,6 +7,8 @@ export interface Subscription {
   frequency: string;
   status: string;
   price: number;
+  renewable_date?: string;
+  whatsapp_no?: string;
   created_at?: string;
 }
 

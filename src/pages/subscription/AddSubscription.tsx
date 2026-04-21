@@ -11,6 +11,7 @@ interface Entry {
     frequency: string;
     status: string;
     price: string;
+    renewable_date: string;
     whatsapp_no: string;
 }
 
@@ -29,6 +30,7 @@ const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose }) =>
             frequency: 'Monthly',
             status: 'Active',
             price: '',
+            renewable_date: '',
             whatsapp_no: ''
         }
     ]);
@@ -56,6 +58,7 @@ const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose }) =>
                 frequency: 'Monthly',
                 status: 'Active',
                 price: '',
+                renewable_date: '',
                 whatsapp_no: ''
             }
         ]);
@@ -84,6 +87,7 @@ const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose }) =>
                     frequency: entry.frequency,
                     status: entry.status,
                     price: parseInt(entry.price),
+                    renewable_date: entry.renewable_date,
                     whatsapp_no: entry.whatsapp_no
                 } as any;
 
@@ -204,6 +208,16 @@ const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose }) =>
                                             <option value="Pending">Pending</option>
                                             <option value="Cancelled">Cancelled</option>
                                         </select>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black text-gray-900 uppercase tracking-widest ml-1">Renewal Date</label>
+                                        <input
+                                            type="date"
+                                            className="w-full p-3 rounded-xl bg-white border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-100 outline-none text-base font-bold text-gray-900 transition-colors"
+                                            value={entry.renewable_date}
+                                            onChange={e => handleChange(entry.id, 'renewable_date', e.target.value)}
+                                        />
                                     </div>
 
                                     <div className="space-y-1.5">

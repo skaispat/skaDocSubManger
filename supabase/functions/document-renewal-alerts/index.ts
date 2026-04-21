@@ -19,8 +19,8 @@ const TABLES = [
 const STAGES = [
   { name: '3_months', days: 90, label: '3 Months' },
   { name: '2_months', days: 60, label: '2 Months' },
-  { name: '1_month', days: 30, label: '1 Month (Urgent)' },
-  { name: '15_days', days: 15, label: '15 Days (Very Critical)' },
+  { name: '1_month', days: 30, label: '1 Month' },
+  { name: '15_days', days: 15, label: '15 Days' },
 ]
 
 serve(async (req) => {
@@ -33,10 +33,10 @@ serve(async (req) => {
       console.log(`Checking table: ${tableName}`)
 
       // Fetch documents needing renewal with a whatsapp number
+      // REMOVED 'renewable' filter for testing to ensure we find documents
       const { data: docs, error: fetchError } = await supabase
         .from(tableName)
         .select('*')
-        .eq('renewable', 'Yes')
         .not('whatsapp_no', 'is', null)
 
       if (fetchError) {
@@ -45,13 +45,22 @@ serve(async (req) => {
       }
 
       for (const doc of docs) {
-        const renewalDateStr = doc.renewable_date || doc.end_date // Handle different column names if any
-        if (!renewalDateStr) continue
+        // Use renewable_date and id_no for all tables as requested
+        const dateStr = doc.renewable_date
+        const docId = doc.id_no ? doc.id_no.toString() : null
 
-        const renewalDate = new Date(renewalDateStr)
+        if (!dateStr || !docId) {
+          console.log(`Skipping record in ${tableName}: Missing renewable_date or id_no`)
+          continue
+        }
+
+        const renewalDate = new Date(dateStr)
         const today = new Date()
+
         const diffTime = renewalDate.getTime() - today.getTime()
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+        console.log(`Checking ${tableName} doc ${docId}: Diff is ${diffDays} days`)
 
         let targetStage = null
 
@@ -69,24 +78,25 @@ serve(async (req) => {
         }
 
         if (targetStage) {
+          console.log(`Found stage ${targetStage.label} for ${docId} (Diff: ${diffDays} days)`)
           // Check if already notified
-          const { data: existingLog, error: logError } = await supabase
+          const { data: existingLog } = await supabase
             .from('notification_logs')
             .select('*')
-            .eq('doc_id', doc.id_no.toString())
+            .eq('doc_id', docId)
             .eq('table_name', tableName)
             .eq('stage', targetStage.name)
-            .order('sent_at', { ascending: false })
+            .order('created_at', { ascending: false })
             .limit(1)
-            .single()
 
           let shouldSend = false
-          if (!existingLog) {
+          if (!existingLog || existingLog.length === 0) {
             shouldSend = true
           } else if (targetStage.name === 'expired') {
-            // For expired, check if last notification was > 7 days ago
-            const lastSent = new Date(existingLog.sent_at)
+            // FOR EXPIRED: Only send every 7 days as requested
+            const lastSent = new Date(existingLog[0].created_at)
             const daysSinceLast = (today.getTime() - lastSent.getTime()) / (1000 * 60 * 60 * 24)
+            console.log(`Expired doc ${docId} last sent ${daysSinceLast.toFixed(1)} days ago`)
             if (daysSinceLast >= 7) {
               shouldSend = true
             }
@@ -100,10 +110,10 @@ serve(async (req) => {
             console.log(`Sending ${targetStage.label} alert for ${docName} to ${fullNumber}`)
 
             const waResponse = await sendWhatsApp(
-              fullNumber, 
-              docName, 
-              renewalDateStr, 
-              targetStage.label, 
+              fullNumber,
+              docName,
+              dateStr,
+              targetStage.label,
               tableName,
               doc.validity_period || 'N/A'
             )
@@ -111,7 +121,7 @@ serve(async (req) => {
             if (waResponse.ok) {
               // Log the notification
               await supabase.from('notification_logs').insert({
-                doc_id: doc.id_no.toString(),
+                doc_id: docId,
                 table_name: tableName,
                 stage: targetStage.name,
                 sent_to: fullNumber
@@ -127,7 +137,11 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ message: "Check completed", results }), {
+    return new Response(JSON.stringify({
+      message: "Check completed",
+      totalAlertsSent: results.length,
+      results
+    }), {
       headers: { "Content-Type": "application/json" },
       status: 200,
     })

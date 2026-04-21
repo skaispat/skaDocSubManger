@@ -26,6 +26,7 @@ const EditSubscription: React.FC<EditSubscriptionProps> = ({ isOpen, onClose, su
                     frequency: sub.frequency || 'Monthly',
                     status: sub.status || 'Active',
                     price: sub.price,
+                    renewable_date: sub.renewalDate || '',
                     whatsapp_no: sub.whatsappNo || ''
                 });
             }
@@ -50,6 +51,7 @@ const EditSubscription: React.FC<EditSubscriptionProps> = ({ isOpen, onClose, su
                 frequency: formData.frequency,
                 status: formData.status,
                 price: parseInt(formData.price),
+                renewable_date: formData.renewable_date,
                 whatsapp_no: formData.whatsapp_no
             };
 
@@ -61,6 +63,7 @@ const EditSubscription: React.FC<EditSubscriptionProps> = ({ isOpen, onClose, su
                     frequency: formData.frequency,
                     status: formData.status,
                     price: formData.price,
+                    renewalDate: formData.renewable_date,
                     whatsappNo: formData.whatsapp_no
                 });
                 toast.success("Subscription updated");
@@ -142,6 +145,16 @@ const EditSubscription: React.FC<EditSubscriptionProps> = ({ isOpen, onClose, su
                                     className="w-full p-3 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-red-100 outline-none text-sm font-bold text-gray-900 uppercase"
                                     value={formData.status || ''}
                                     onChange={e => handleChange('status', e.target.value)}
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-gray-900 uppercase tracking-widest ml-1">Renewal Date</label>
+                                <input
+                                    type="date"
+                                    className="w-full p-3 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-red-100 outline-none text-sm font-bold text-gray-900"
+                                    value={formData.renewable_date || ''}
+                                    onChange={e => handleChange('renewable_date', e.target.value)}
                                 />
                             </div>
 
