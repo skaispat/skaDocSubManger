@@ -49,9 +49,9 @@ const ComplianceDocuments = ({ navigator }: { navigator?: React.ReactNode }) => 
 
     const filteredData = documents.filter(item => {
         const matchesSearch =
-            (item.documentName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (item.companyName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (item.sn?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+            (String(item.documentName || '').toLowerCase()).includes(searchTerm.toLowerCase()) ||
+            (String(item.companyName || '').toLowerCase()).includes(searchTerm.toLowerCase()) ||
+            (String(item.sn || '').toLowerCase()).includes(searchTerm.toLowerCase());
 
         return matchesSearch;
     });
@@ -291,11 +291,10 @@ const ComplianceDocuments = ({ navigator }: { navigator?: React.ReactNode }) => 
                                         <td className="px-4 py-3 text-center text-gray-600 font-bold uppercase text-[11px]">{item.validityPeriod}</td>
                                         <td className="px-4 py-3 text-center text-gray-900 font-medium">{item.renewalDate ? formatDate(item.renewalDate) : '-'}</td>
                                         <td className="px-4 py-3 text-center">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                                                item.status === 'Completed' || item.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' : 
-                                                item.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' : 
-                                                'bg-red-50 text-red-700 border-red-100'
-                                            }`}>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${item.status === 'Completed' || item.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' :
+                                                item.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                                                    'bg-red-50 text-red-700 border-red-100'
+                                                }`}>
                                                 {item.status}
                                             </span>
                                         </td>
@@ -326,11 +325,10 @@ const ComplianceDocuments = ({ navigator }: { navigator?: React.ReactNode }) => 
                                     <h3 className="font-bold text-gray-900">{item.documentName}</h3>
                                     <p className="text-[10px] text-gray-500 font-bold uppercase mt-0.5">{item.documentType}</p>
                                 </div>
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                                    item.status === 'Completed' || item.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' : 
-                                    item.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' : 
-                                    'bg-red-50 text-red-700 border-red-100'
-                                }`}>
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${item.status === 'Completed' || item.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' :
+                                    item.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                                        'bg-red-50 text-red-700 border-red-100'
+                                    }`}>
                                     {item.status}
                                 </span>
                             </div>

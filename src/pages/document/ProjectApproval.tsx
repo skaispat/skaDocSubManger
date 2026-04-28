@@ -49,9 +49,9 @@ const ProjectApproval = ({ navigator }: { navigator?: React.ReactNode }) => {
 
     const filteredData = documents.filter(item => {
         const matchesSearch =
-            (item.documentName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (item.companyName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (item.sn?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+            (String(item.documentName || '').toLowerCase()).includes(searchTerm.toLowerCase()) ||
+            (String(item.companyName || '').toLowerCase()).includes(searchTerm.toLowerCase()) ||
+            (String(item.sn || '').toLowerCase()).includes(searchTerm.toLowerCase());
 
         return matchesSearch;
     });

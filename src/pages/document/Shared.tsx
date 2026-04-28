@@ -26,11 +26,11 @@ const SharedDocuments = ({ navigator }: { navigator?: React.ReactNode }) => {
     }, []);
 
     const filteredData = shareHistory.filter(item =>
-        (item.share_no || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.doc_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.recipient_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.doc_serial || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.contact_info || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (String(item.share_no || '')).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (String(item.doc_name || '')).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (String(item.recipient_name || '')).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (String(item.doc_serial || '')).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (String(item.contact_info || '')).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
